@@ -21,6 +21,11 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.model.*;
+import org.alicebot.ab.utils.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

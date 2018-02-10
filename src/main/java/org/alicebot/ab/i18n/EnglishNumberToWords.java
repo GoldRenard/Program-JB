@@ -1,4 +1,4 @@
-package org.alicebot.ab;
+package org.alicebot.ab.i18n;
 
 import java.text.DecimalFormat;
 

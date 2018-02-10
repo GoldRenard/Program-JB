@@ -1,3 +1,4 @@
+package org.alicebot.ab.configuration;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -17,33 +18,21 @@
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
-package org.alicebot.ab;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- * Nodemapper data structure.  In order to minimize memory overhead this class has no methods.
- * Operations on Nodemapper objects are performed by NodemapperOperator class
+ * Integers with specific values in Program AB
  */
-@Getter
-@Setter
-public class Nodemapper {
-
-    private Category category = null;
-    private int height = MagicNumbers.max_graph_height;
-    private StarBindings starBindings = null;
-    private Map<String, Nodemapper> map = null;
-    private String key = null;
-    private Nodemapper value = null;
-    private boolean shortCut = false;
-    private List<String> sets;
-
+public class MagicNumbers {
+    public static int node_activation_cnt = 4;  // minimum number of activations to suggest atomic pattern
+    public static int node_size = 4;  // minimum number of branches to suggest wildcard pattern
+    public static int displayed_input_sample_size = 6;
+    public static int max_history = 32;
+    public static int repetition_count = 2;
+    public static int max_stars = 1000;
+    public static int max_graph_height = 100000;
+    public static int max_substitutions = 10000;
+    public static int max_recursion_depth = 765; // assuming java -Xmx512M
+    public static int max_recursion_count = 2048;
+    public static int max_loops = 10000;
+    public static int brain_print_size = 100; // largest size of brain to print to System.out
 }
-
-

@@ -19,12 +19,12 @@
 */
 package org.alicebot.ab;
 
+import org.alicebot.ab.model.Nodemapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class NodemapperOperator {
@@ -78,10 +78,11 @@ public class NodemapperOperator {
         if (node.getMap() != null) {
             return node.getMap().get(key);
         } else {// node.type == unary_node_mapper
-            if (key.equals(node.getKey())) return node.getValue();
-            else return null;
+            if (key.equals(node.getKey())) {
+                return node.getValue();
+            }
+            return null;
         }
-
     }
 
     /**

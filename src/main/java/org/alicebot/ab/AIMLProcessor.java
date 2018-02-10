@@ -19,6 +19,10 @@
 */
 package org.alicebot.ab;
 
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

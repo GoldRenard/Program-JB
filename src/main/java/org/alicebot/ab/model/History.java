@@ -17,9 +17,11 @@
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
-package org.alicebot.ab;
+package org.alicebot.ab.model;
 
 import lombok.Getter;
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
 
 /**
  * History object to maintain history of input, that request and response

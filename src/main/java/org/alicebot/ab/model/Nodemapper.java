@@ -1,4 +1,3 @@
-package org.alicebot.ab;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -18,18 +17,32 @@ package org.alicebot.ab;
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
+package org.alicebot.ab.model;
 
-import java.util.ArrayList;
+import lombok.Getter;
+import lombok.Setter;
+import org.alicebot.ab.configuration.MagicNumbers;
 
+import java.util.List;
+import java.util.Map;
 
 /**
- * Array of values matching wildcards
+ * Nodemapper data structure.  In order to minimize memory overhead this class has no methods.
+ * Operations on Nodemapper objects are performed by NodemapperOperator class
  */
-public class Stars extends ArrayList<String> {
-    public String star(int i) {
-        if (i < size())
-            return get(i);
-        else return null;
-    }
+@Getter
+@Setter
+public class Nodemapper {
+
+    private Category category = null;
+    private int height = MagicNumbers.max_graph_height;
+    private StarBindings starBindings = null;
+    private Map<String, Nodemapper> map = null;
+    private String key = null;
+    private Nodemapper value = null;
+    private boolean shortCut = false;
+    private List<String> sets;
 
 }
+
+

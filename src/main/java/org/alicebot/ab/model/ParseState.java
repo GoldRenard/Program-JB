@@ -17,10 +17,14 @@
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
-package org.alicebot.ab;
+package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.alicebot.ab.Chat;
+import org.alicebot.ab.model.Nodemapper;
+import org.alicebot.ab.model.Predicates;
+import org.alicebot.ab.model.StarBindings;
 
 /**
  * ParseState is a helper class for AIMLProcessor

@@ -1,4 +1,3 @@
-package org.alicebot.ab;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -18,26 +17,18 @@ package org.alicebot.ab;
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
+package org.alicebot.ab.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.ArrayList;
 
 /**
- * structure to hold binding of wildcards in input pattern, that pattern and topicpattern
+ * Array of values matching wildcards
  */
-@Getter
-@Setter
-public class StarBindings {
-    private Stars inputStars;
-    private Stars thatStars;
-    private Stars topicStars;
-
-    /**
-     * Constructor  -- this class has public members
-     */
-    public StarBindings() {
-        inputStars = new Stars();
-        thatStars = new Stars();
-        topicStars = new Stars();
+public class Stars extends ArrayList<String> {
+    public String star(int i) {
+        if (i < size()) {
+            return get(i);
+        }
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package org.alicebot.ab;
 
 import junit.framework.TestCase;
+import org.alicebot.ab.i18n.Inflector;
 import org.junit.Test;
 
 /**

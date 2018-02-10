@@ -19,6 +19,7 @@
 */
 package org.alicebot.ab;
 
+import org.alicebot.ab.model.ParseState;
 import org.w3c.dom.Node;
 
 import java.util.Set;

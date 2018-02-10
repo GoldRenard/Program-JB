@@ -2,8 +2,8 @@ package org.alicebot.ab.utils;
 
 import net.reduls.sanmoku.Tagger;
 import org.alicebot.ab.AIMLProcessor;
-import org.alicebot.ab.MagicBooleans;
-import org.alicebot.ab.MagicStrings;
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;

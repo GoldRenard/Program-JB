@@ -2,6 +2,10 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.etc.TestAB;
+import org.alicebot.ab.model.Clause;
+import org.alicebot.ab.model.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +19,6 @@ public class TripleStore {
 
     private int idCnt = 0;
     private String name = "unknown";
-    private Chat chatSession;
     private Bot bot;
     private Map<String, Triple> idTriple = new HashMap<>();
     private Map<String, String> tripleStringId = new HashMap<>();
@@ -23,10 +26,9 @@ public class TripleStore {
     private Map<String, Set<String>> predicateTriples = new HashMap<>();
     private Map<String, Set<String>> objectTriples = new HashMap<>();
 
-    public TripleStore(String name, Chat chatSession) {
+    public TripleStore(String name, Bot bot) {
         this.name = name;
-        this.chatSession = chatSession;
-        this.bot = chatSession.getBot();
+        this.bot = bot;
     }
 
     @Getter
@@ -243,7 +245,7 @@ public class TripleStore {
     public Set<Tuple> select(Set<String> vars, Set<String> visibleVars, List<Clause> clauses) {
         Set<Tuple> result = new HashSet<>();
         try {
-            Tuple tuple = chatSession.getBot().getProcessor().storeTuple(new Tuple(vars, visibleVars));
+            Tuple tuple = bot.getProcessor().storeTuple(new Tuple(vars, visibleVars));
             result = selectFromRemainingClauses(tuple, clauses);
         } catch (Exception e) {
             log.error("Error", e);
@@ -280,7 +282,7 @@ public class TripleStore {
     }
 
     public Tuple bindTuple(Tuple partial, String triple, Clause clause) {
-        Tuple tuple = chatSession.getBot().getProcessor().storeTuple(new Tuple(partial));
+        Tuple tuple = bot.getProcessor().storeTuple(new Tuple(partial));
         if (clause.getSubj().startsWith("?")) tuple.bind(clause.getSubj(), getSubject(triple));
         if (clause.getPred().startsWith("?")) tuple.bind(clause.getPred(), getPredicate(triple));
         if (clause.getObj().startsWith("?")) tuple.bind(clause.getObj(), getObject(triple));

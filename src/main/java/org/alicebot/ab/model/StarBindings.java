@@ -1,4 +1,4 @@
-package org.alicebot.ab;
+package org.alicebot.ab.model;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -19,20 +19,26 @@ package org.alicebot.ab;
         Boston, MA  02110-1301, USA.
 */
 
+import lombok.Getter;
+import lombok.Setter;
+import org.alicebot.ab.model.Stars;
+
 /**
- * Integers with specific values in Program AB
+ * structure to hold binding of wildcards in input pattern, that pattern and topicpattern
  */
-public class MagicNumbers {
-    public static int node_activation_cnt = 4;  // minimum number of activations to suggest atomic pattern
-    public static int node_size = 4;  // minimum number of branches to suggest wildcard pattern
-    public static int displayed_input_sample_size = 6;
-    public static int max_history = 32;
-    public static int repetition_count = 2;
-    public static int max_stars = 1000;
-    public static int max_graph_height = 100000;
-    public static int max_substitutions = 10000;
-    public static int max_recursion_depth = 765; // assuming java -Xmx512M
-    public static int max_recursion_count = 2048;
-    public static int max_loops = 10000;
-    public static int brain_print_size = 100; // largest size of brain to print to System.out
+@Getter
+@Setter
+public class StarBindings {
+    private Stars inputStars;
+    private Stars thatStars;
+    private Stars topicStars;
+
+    /**
+     * Constructor  -- this class has public members
+     */
+    public StarBindings() {
+        inputStars = new Stars();
+        thatStars = new Stars();
+        topicStars = new Stars();
+    }
 }

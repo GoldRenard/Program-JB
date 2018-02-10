@@ -1,4 +1,4 @@
-package org.alicebot.ab;
+package org.alicebot.ab.model;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -20,6 +20,10 @@ package org.alicebot.ab;
 */
 
 import lombok.Getter;
+import org.alicebot.ab.Bot;
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.Sraix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.alicebot.ab;
+package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;

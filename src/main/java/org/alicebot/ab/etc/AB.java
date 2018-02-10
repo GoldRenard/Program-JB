@@ -17,9 +17,17 @@
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
-package org.alicebot.ab;
+package org.alicebot.ab.etc;
 
+import org.alicebot.ab.*;
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.model.AIMLSet;
+import org.alicebot.ab.model.Category;
+import org.alicebot.ab.model.Nodemapper;
 import org.alicebot.ab.utils.IOUtils;
+import org.alicebot.ab.utils.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

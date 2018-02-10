@@ -21,6 +21,11 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.model.History;
+import org.alicebot.ab.model.Predicates;
 import org.alicebot.ab.utils.IOUtils;
 import org.alicebot.ab.utils.JapaneseUtils;
 import org.slf4j.Logger;
@@ -38,6 +43,7 @@ public class Chat {
     private static final Logger log = LoggerFactory.getLogger(Chat.class);
 
     private final Bot bot;
+    private final TripleStore tripleStore;
     private boolean doWrites;
     private String customerId = MagicStrings.default_Customer_id;
     private History<History> thatHistory = new History<>("that");
@@ -45,7 +51,6 @@ public class Chat {
     private History<String> responseHistory = new History<>("response");
     private History<String> inputHistory = new History<>("input");
     private Predicates predicates = new Predicates();
-    private TripleStore tripleStore = new TripleStore("anon", this);
 
     /**
      * Constructor  (defualt customer ID)
@@ -69,6 +74,7 @@ public class Chat {
     public Chat(Bot bot, boolean doWrites, String customerId) {
         this.customerId = customerId;
         this.bot = bot;
+        this.tripleStore = new TripleStore("anon", bot);
         this.doWrites = doWrites;
         History<String> contextThatHistory = new History<>();
         contextThatHistory.add(MagicStrings.default_that);

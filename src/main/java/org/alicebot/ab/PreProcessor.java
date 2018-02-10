@@ -19,6 +19,8 @@
 */
 package org.alicebot.ab;
 
+import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

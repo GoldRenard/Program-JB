@@ -1,4 +1,9 @@
-package org.alicebot.ab;
+package org.alicebot.ab.i18n;
+
+import org.alicebot.ab.Bot;
+import org.alicebot.ab.model.AIMLMap;
+import org.alicebot.ab.model.AIMLSet;
+import org.alicebot.ab.utils.Utilities;
 
 import java.util.*;
 
