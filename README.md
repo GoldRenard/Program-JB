@@ -13,7 +13,7 @@ Be sure to replace the **VERSION** key below with the latest version shown above
 Maven
 ```xml
 <dependency>
-    <groupId>org.alicebot</groupId>
+    <groupId>org.goldrenard</groupId>
     <artifactId>ab</artifactId>
     <version>VERSION</version>
 </dependency>
