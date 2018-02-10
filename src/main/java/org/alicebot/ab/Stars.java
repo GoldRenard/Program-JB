@@ -18,6 +18,7 @@ package org.alicebot.ab;
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
+
 import java.util.ArrayList;
 
 
@@ -25,9 +26,9 @@ import java.util.ArrayList;
  * Array of values matching wildcards
  */
 public class Stars extends ArrayList<String> {
-    public String star (int i) {
+    public String star(int i) {
         if (i < size())
-        return get(i);
+            return get(i);
         else return null;
     }
 

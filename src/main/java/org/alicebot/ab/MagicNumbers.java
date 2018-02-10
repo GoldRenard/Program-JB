@@ -21,7 +21,6 @@ package org.alicebot.ab;
 
 /**
  * Integers with specific values in Program AB
- *
  */
 public class MagicNumbers {
     public static int node_activation_cnt = 4;  // minimum number of activations to suggest atomic pattern

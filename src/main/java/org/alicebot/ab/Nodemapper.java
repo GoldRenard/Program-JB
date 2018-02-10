@@ -1,4 +1,3 @@
-package org.alicebot.ab;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -18,29 +17,33 @@ package org.alicebot.ab;
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
+package org.alicebot.ab;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Nodemapper data structure.  In order to minimize memory overhead this class has no methods.
  * Operations on Nodemapper objects are performed by NodemapperOperator class
  */
+@Getter
+@Setter
 public class Nodemapper {
-/*    public static int idCnt=0;
-    public int id;*/
-    public Category category = null;
-    public int height = MagicNumbers.max_graph_height;
-    public StarBindings starBindings = null;
-    public HashMap<String, Nodemapper> map = null;
-    public String key = null;
-    public Nodemapper value = null;
-    public boolean shortCut = false;
-    public ArrayList<String> sets;
-/*    public Nodemapper () {
-        id = idCnt++;
-    }*/
 
- }
+    private Category category = null;
+    private int height = MagicNumbers.max_graph_height;
+    private StarBindings starBindings = null;
+    private Map<String, Nodemapper> map = null;
+    private String key = null;
+    private Nodemapper value = null;
+    private boolean shortCut = false;
+    private List<String> sets;
+
+}
 
 

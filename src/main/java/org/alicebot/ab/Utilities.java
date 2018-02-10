@@ -1,4 +1,3 @@
-package org.alicebot.ab;
 /* Program AB Reference AIML 2.0 implementation
         Copyright (C) 2013 ALICE A.I. Foundation
         Contact: info@alicebot.org
@@ -18,148 +17,156 @@ package org.alicebot.ab;
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
+package org.alicebot.ab;
+
 import org.alicebot.ab.utils.CalendarUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 public class Utilities {
+
+    private static final Logger log = LoggerFactory.getLogger(Utilities.class);
 
     /**
      * Excel sometimes adds mysterious formatting to CSV files.
      * This function tries to clean it up.
      *
-     * @param line     line from AIMLIF file
-     * @return   reformatted line
+     * @param line line from AIMLIF file
+     * @return reformatted line
      */
-    public static String fixCSV (String line) {
-        while (line.endsWith(";")) line = line.substring(0, line.length()-1);
-        if (line.startsWith("\"")) line = line.substring(1, line.length());
-        if (line.endsWith("\"")) line = line.substring(0, line.length()-1);
-        line = line.replaceAll("\"\"", "\"");
-        return line;
+    public static String fixCSV(String line) {
+        while (line.endsWith(";")) {
+            line = line.substring(0, line.length() - 1);
+        }
+        if (line.startsWith("\"")) {
+            line = line.substring(1, line.length());
+        }
+        if (line.endsWith("\"")) {
+            line = line.substring(0, line.length() - 1);
+        }
+        return line.replaceAll("\"\"", "\"");
     }
+
     public static String tagTrim(String xmlExpression, String tagName) {
-        String stag = "<"+tagName+">";
-        String etag = "</"+tagName+">";
-        if (xmlExpression.length() >= (stag+etag).length()) {
+        String stag = "<" + tagName + ">";
+        String etag = "</" + tagName + ">";
+        if (xmlExpression.length() >= (stag + etag).length()) {
             xmlExpression = xmlExpression.substring(stag.length());
-            xmlExpression = xmlExpression.substring(0, xmlExpression.length()-etag.length());
+            xmlExpression = xmlExpression.substring(0, xmlExpression.length() - etag.length());
         }
         return xmlExpression;
     }
-    public static HashSet<String> stringSet(String... strings)  {
-        HashSet<String> set = new HashSet<String>();
-        for (String s : strings) set.add(s);
-        return set;
+
+    public static Set<String> stringSet(String... strings) {
+        return new HashSet<>(Arrays.asList(strings));
     }
-    public static String getFileFromInputStream(InputStream in)  {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+    public static String getFileFromInputStream(InputStream in) {
         String strLine;
-        //Read File Line By Line
-        String contents = "";
-        try {
-            while ((strLine = br.readLine()) != null)   {
+        StringBuilder contents = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            while ((strLine = reader.readLine()) != null) {
                 if (!strLine.startsWith(MagicStrings.text_comment_mark)) {
-                if (strLine.length() == 0) contents += "\n";
-                else contents  += strLine+"\n";
+                    if (strLine.length() != 0) {
+                        contents.append(strLine);
+                    }
+                    contents.append("\n");
                 }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            log.error("Error: ", e);
         }
-        return contents.trim();
+        return contents.toString().trim();
     }
-    public static String getFile (String filename) {
-        String contents = "";
+
+    public static String getFile(String filename) {
         try {
             File file = new File(filename);
             if (file.exists()) {
-                //System.out.println("Found file "+filename);
-                FileInputStream fstream = new FileInputStream(filename);
-                // Get the object
-                contents = getFileFromInputStream(fstream) ;
-                fstream.close();
+                try (FileInputStream stream = new FileInputStream(filename)) {
+                    return getFileFromInputStream(stream);
+                }
             }
-        } catch (Exception e){//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error: ", e);
         }
-        //System.out.println("getFile: "+contents);
-        return contents;
+        return "";
     }
-    public static String getCopyrightFromInputStream(InputStream in)  {
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-        String strLine;
-        //Read File Line By Line
-        String copyright = "";
-        try {
-            while ((strLine = br.readLine()) != null)   {
-                if (strLine.length() == 0) copyright += "\n";
-                else copyright += "<!-- "+strLine+" -->\n";
+
+    public static String getCopyrightFromInputStream(InputStream in) {
+        StringBuilder copyright = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String strLine;
+            while ((strLine = reader.readLine()) != null) {
+                if (strLine.length() != 0) {
+                    copyright.append("<!-- ").append(strLine).append(" -->");
+                }
+                copyright.append("\n");
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            log.error("Error: ", e);
         }
-        return copyright;
+        return copyright.toString();
     }
-    public static String getCopyright (Bot bot, String AIMLFilename) {
+
+    public static String getCopyright(Bot bot, String AIMLFilename) {
         String copyright = "";
         String year = CalendarUtils.year();
         String date = CalendarUtils.date();
         try {
-                copyright = getFile(bot.config_path+"/copyright.txt") ;
-                String[] splitCopyright = copyright.split("\n");
-                copyright = "";
-                for (int i = 0; i < splitCopyright.length; i++) {
-                    copyright += "<!-- "+splitCopyright[i]+" -->\n";
-                }
-                copyright = copyright.replace("[url]", bot.properties.get("url"));
-                copyright = copyright.replace("[date]", date);
-                copyright = copyright.replace("[YYYY]", year);
-                copyright = copyright.replace("[version]", bot.properties.get("version"));
-                copyright = copyright.replace("[botname]", bot.name.toUpperCase());
-                copyright = copyright.replace("[filename]", AIMLFilename);
-                copyright = copyright.replace("[botmaster]", bot.properties.get("botmaster"));
-                copyright = copyright.replace("[organization]", bot.properties.get("organization"));
-        } catch (Exception e){//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
+            copyright = getFile(bot.getConfigPath() + "/copyright.txt");
+            String[] splitCopyright = copyright.split("\n");
+            copyright = "";
+
+            StringBuilder builder = new StringBuilder();
+            for (String part : splitCopyright) {
+                builder.append("<!-- ").append(part).append(" -->\n");
+            }
+            copyright = builder.toString();
+            copyright = copyright.replace("[url]", bot.getProperties().get("url"));
+            copyright = copyright.replace("[date]", date);
+            copyright = copyright.replace("[YYYY]", year);
+            copyright = copyright.replace("[version]", bot.getProperties().get("version"));
+            copyright = copyright.replace("[botname]", bot.getName().toUpperCase());
+            copyright = copyright.replace("[filename]", AIMLFilename);
+            copyright = copyright.replace("[botmaster]", bot.getProperties().get("botmaster"));
+            copyright = copyright.replace("[organization]", bot.getProperties().get("organization"));
+        } catch (Exception e) {//Catch exception if any
+            log.error("Error: ", e);
         }
-        copyright += "<!--  -->\n";
-        //System.out.println("Copyright: "+copyright);
         return copyright;
     }
 
-    public static String getPannousAPIKey (Bot bot) {
-       String apiKey = getFile(bot.config_path+"/pannous-apikey.txt");
-       if (apiKey.equals("")) apiKey = MagicStrings.pannous_api_key;
-       return apiKey;
+    public static String getPannousAPIKey(Bot bot) {
+        String apiKey = getFile(bot.getConfigPath() + "/pannous-apikey.txt");
+        return StringUtils.isEmpty(apiKey) ? MagicStrings.pannous_api_key : apiKey;
     }
-    public static String getPannousLogin (Bot bot) {
-        String login = getFile(bot.config_path+"/pannous-login.txt");
-        if (login.equals("")) login = MagicStrings.pannous_login;
-        return login;
+
+    public static String getPannousLogin(Bot bot) {
+        String login = getFile(bot.getConfigPath() + "/pannous-login.txt");
+        return StringUtils.isEmpty(login) ? MagicStrings.pannous_login : login;
     }
+
     /**
      * Returns if a character is one of Chinese-Japanese-Korean characters.
      *
-     * @param c
-     *            the character to be tested
+     * @param c the character to be tested
      * @return true if CJK, false otherwise
      */
     public static boolean isCharCJK(final char c) {
-        if ((Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS)
+        return (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT)
                 || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION)
-                || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS)) {
-            return true;
-        }
-        return false;
+                || (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS);
     }
-
-
-
 }

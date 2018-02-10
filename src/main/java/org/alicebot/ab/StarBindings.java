@@ -19,17 +19,23 @@ package org.alicebot.ab;
         Boston, MA  02110-1301, USA.
 */
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * structure to hold binding of wildcards in input pattern, that pattern and topicpattern
  */
+@Getter
+@Setter
 public class StarBindings {
-    public Stars inputStars;
-    public Stars thatStars;
-    public Stars topicStars;
-    /** Constructor  -- this class has public members
-     *
+    private Stars inputStars;
+    private Stars thatStars;
+    private Stars topicStars;
+
+    /**
+     * Constructor  -- this class has public members
      */
-    public StarBindings () {
+    public StarBindings() {
         inputStars = new Stars();
         thatStars = new Stars();
         topicStars = new Stars();
