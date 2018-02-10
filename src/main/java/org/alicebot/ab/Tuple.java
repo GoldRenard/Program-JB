@@ -19,13 +19,11 @@ public class Tuple extends HashMap<String, String> {
 
     private static final Logger log = LoggerFactory.getLogger(Tuple.class);
 
-    public static Map<String, Tuple> tupleMap = new ConcurrentHashMap<>();
-
     private static AtomicLong index = new AtomicLong();
     private Set<String> visibleVars = new HashSet<>();
     private String name;
 
-    public Tuple(Set<String> varSet, Set<String> visibleVars, Tuple tuple) {
+    protected Tuple(Set<String> varSet, Set<String> visibleVars, Tuple tuple) {
         if (visibleVars != null) {
             this.visibleVars.addAll(visibleVars);
         }
@@ -41,7 +39,6 @@ public class Tuple extends HashMap<String, String> {
             }
         }
         this.name = "tuple" + index.incrementAndGet();
-        tupleMap.put(name, this);
     }
 
     public Tuple(Tuple tuple) {

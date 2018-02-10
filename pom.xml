@@ -5,7 +5,7 @@
     <groupId>org.goldrenard</groupId>
     <artifactId>ab</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.1</version>
+    <version>1.0.4</version>
 
     <name>Program AB</name>
     <description>Program AB is the reference implementation of the AIML 2.0 draft specification. AIML is a widely adopted standard for creating chat bots and mobile virtual assistants like ALICE, Mitsuku, English Tutor, The Professor, S.U.P.E.R. and many more.</description>
@@ -23,6 +23,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
     </properties>
 
     <distributionManagement>
@@ -108,7 +109,56 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>delombok-sources</id>
+            <activation>
+                <property>
+                    <name>delombok-sources</name>
+                </property>
+            </activation>
+            <properties>
+                <sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok-maven-plugin</artifactId>
+                        <version>1.16.6.1</version>
+                        <executions>
+                            <execution>
+                                <id>delombok</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>delombok</goal>
+                                </goals>
+                                <configuration>
+                                    <addOutputDirectory>false</addOutputDirectory>
+                                    <sourceDirectory>src/main/java</sourceDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
+        <sourceDirectory>${sourceDirectory}</sourceDirectory>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

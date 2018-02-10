@@ -28,6 +28,5 @@ Maven
 The builds are distributed using JCenter through Bintray [JCenter Bintray](https://bintray.com/goldrenard/program-ab/program-ab/)
 
 # TO DO
-- AIMLProcessor and Tuple thread-safety
-- Verbs dictionary
 - Get a rid of MagicThings, make it as configuration
+- Verbs dictionary

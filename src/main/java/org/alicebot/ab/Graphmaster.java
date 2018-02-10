@@ -51,14 +51,12 @@ public class Graphmaster {
     private String resultNote = "";
     private int categoryCnt = 0;
 
-
     private int leafCnt;
     private int nodeCnt;
     private long nodeSize;
     private int singletonCnt;
     private int shortCutCnt;
     private int naryCnt;
-
 
     /**
      * Constructor

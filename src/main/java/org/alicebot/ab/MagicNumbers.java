@@ -33,9 +33,6 @@ public class MagicNumbers {
     public static int max_substitutions = 10000;
     public static int max_recursion_depth = 765; // assuming java -Xmx512M
     public static int max_recursion_count = 2048;
-    public static int max_trace_length = 2048;
     public static int max_loops = 10000;
-    public static int estimated_brain_size = 5000;
-    public static int max_natural_number_digits = 10000;
     public static int brain_print_size = 100; // largest size of brain to print to System.out
 }

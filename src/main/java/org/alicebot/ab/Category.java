@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * structure representing an AIML category and operations on Category
@@ -34,14 +35,15 @@ public class Category {
 
     private static final Logger log = LoggerFactory.getLogger(Category.class);
 
+    private static AtomicLong categoryCnt = new AtomicLong();
+
     private String pattern;
     private String that;
     private String topic;
     private String template;
     private String filename;
     private int activationCnt;
-    private int categoryNumber; // for loading order
-    private static int categoryCnt = 0;
+    private long categoryNumber; // for loading order
     private AIMLSet matches;
     private String validationMessage = "";
 
@@ -302,7 +304,7 @@ public class Category {
         this.filename = filename;
         this.activationCnt = activationCnt;
         matches = null;
-        this.categoryNumber = categoryCnt++;
+        this.categoryNumber = categoryCnt.incrementAndGet();
     }
 
     /**
@@ -333,5 +335,5 @@ public class Category {
     /**
      * compare two categories for sorting purposes based on category index number
      */
-    public static Comparator<Category> CATEGORY_NUMBER_COMPARATOR = Comparator.comparingInt(Category::getCategoryNumber);
+    public static Comparator<Category> CATEGORY_NUMBER_COMPARATOR = Comparator.comparingLong(Category::getCategoryNumber);
 }

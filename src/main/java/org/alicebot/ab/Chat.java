@@ -174,7 +174,7 @@ public class Chat {
 
         String response;
 
-        response = AIMLProcessor.respond(input, that, topic, this);
+        response = bot.getProcessor().respond(input, that, topic, this);
         String normResponse = bot.getPreProcessor().normalize(response);
         if (MagicBooleans.jp_tokenize) {
             normResponse = JapaneseUtils.tokenizeSentence(normResponse);

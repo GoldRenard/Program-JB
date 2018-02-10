@@ -29,7 +29,6 @@ public class App {
 
     public static void main(String[] args) {
         MagicStrings.setRootPath();
-        AIMLProcessor.extension = new PCAIMLProcessorExtension();
         String botName = "alice2";
         MagicBooleans.jp_tokenize = false;
         String action = "chat";

@@ -243,7 +243,7 @@ public class TripleStore {
     public Set<Tuple> select(Set<String> vars, Set<String> visibleVars, List<Clause> clauses) {
         Set<Tuple> result = new HashSet<>();
         try {
-            Tuple tuple = new Tuple(vars, visibleVars);
+            Tuple tuple = chatSession.getBot().getProcessor().storeTuple(new Tuple(vars, visibleVars));
             result = selectFromRemainingClauses(tuple, clauses);
         } catch (Exception e) {
             log.error("Error", e);
@@ -280,7 +280,7 @@ public class TripleStore {
     }
 
     public Tuple bindTuple(Tuple partial, String triple, Clause clause) {
-        Tuple tuple = new Tuple(partial);
+        Tuple tuple = chatSession.getBot().getProcessor().storeTuple(new Tuple(partial));
         if (clause.getSubj().startsWith("?")) tuple.bind(clause.getSubj(), getSubject(triple));
         if (clause.getPred().startsWith("?")) tuple.bind(clause.getPred(), getPredicate(triple));
         if (clause.getObj().startsWith("?")) tuple.bind(clause.getObj(), getObject(triple));

@@ -33,7 +33,7 @@ import java.util.HashMap;
  */
 public class AIMLMap extends HashMap<String, String> {
 
-    private static final Logger log = LoggerFactory.getLogger(AB.class);
+    private static final Logger log = LoggerFactory.getLogger(AIMLMap.class);
 
     private String mapName;
     private String host;    // for external maps

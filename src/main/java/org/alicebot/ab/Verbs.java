@@ -10,11 +10,11 @@ public class Verbs {
     private static Set<String> notBing = Utilities.stringSet("der", "eat", "ber", "ain", "sit", "ait", "uit", "eet", "ter", "lop", "ver", "wer", "aim", "oid", "eel", "out", "oin", "fer", "vel", "mit");
 
     public static Set<String> irregular = new HashSet<>();
-    public static Map<String, String> be2was = new HashMap<>();
-    public static Map<String, String> be2been = new HashMap<>();
-    public static Map<String, String> be2is = new HashMap<>();
-    public static Map<String, String> be2being = new HashMap<>();
-    public static Set<String> allVerbs = new HashSet<>();
+    private static Map<String, String> be2was = new HashMap<>();
+    private static Map<String, String> be2been = new HashMap<>();
+    private static Map<String, String> be2is = new HashMap<>();
+    private static Map<String, String> be2being = new HashMap<>();
+    private static Set<String> allVerbs = new HashSet<>();
 
     public static String endsWith(String verb, Set<String> endings) {
         for (String x : endings) {

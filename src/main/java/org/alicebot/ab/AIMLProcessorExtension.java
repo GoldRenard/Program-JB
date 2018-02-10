@@ -46,4 +46,6 @@ public interface AIMLProcessorExtension {
      * @return result of evaluating AIML
      */
     String recursEval(Node node, ParseState ps);
+
+    void setProcessor(AIMLProcessor processor);
 }

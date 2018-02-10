@@ -45,6 +45,8 @@ public class Bot {
 
     private final PreProcessor preProcessor;
 
+    private final AIMLProcessor processor;
+
     private final Graphmaster brain;
 
     private Graphmaster learnfGraph;
@@ -124,6 +126,7 @@ public class Bot {
         this.learnfGraph = new Graphmaster(this, "learnf");
         this.learnGraph = new Graphmaster(this, "learn");
         this.preProcessor = new PreProcessor(this);
+        this.processor = new AIMLProcessor();
         addProperties();
         count = addAIMLSets();
         if (log.isDebugEnabled()) {

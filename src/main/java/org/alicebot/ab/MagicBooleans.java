@@ -23,7 +23,6 @@ package org.alicebot.ab;
  * Global boolean values that control various actions in Program AB
  */
 public class MagicBooleans {
-    public static boolean trace_mode = true;
     public static boolean enable_external_sets = true;
     public static boolean jp_tokenize = false;
     public static boolean fix_excel_csv = true;
@@ -31,5 +30,4 @@ public class MagicBooleans {
     public static boolean qa_test_mode = false;
     public static boolean make_verbs_sets_maps = false;
     public static boolean graph_enableShortCuts = false;
-
 }
