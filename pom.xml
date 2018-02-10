@@ -5,7 +5,7 @@
     <groupId>org.alicebot</groupId>
     <artifactId>ab</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <name>Program AB</name>
     <description>Program AB is the reference implementation of the AIML 2.0 draft specification. AIML is a widely adopted standard for creating chat bots and mobile virtual assistants like ALICE, Mitsuku, English Tutor, The Professor, S.U.P.E.R. and many more.</description>
@@ -24,6 +24,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-goldrenard-program-ab</id>
+            <name>goldrenard-program-ab</name>
+            <url>https://api.bintray.com/maven/goldrenard/program-ab/program-ab/;publish=1</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <repository>
