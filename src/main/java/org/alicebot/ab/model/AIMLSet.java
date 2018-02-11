@@ -21,8 +21,8 @@ package org.alicebot.ab.model;
 
 import lombok.Getter;
 import org.alicebot.ab.Bot;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.Sraix;
+import org.alicebot.ab.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class AIMLSet extends HashSet<String> {
         super();
         this.bot = bot;
         this.setName = name.toLowerCase();
-        if (setName.equals(MagicStrings.natural_number_set_name)) {
+        if (setName.equals(Constants.natural_number_set_name)) {
             maxLength = 1;
         }
     }
@@ -77,7 +77,7 @@ public class AIMLSet extends HashSet<String> {
             if (split.length > maxLength) {
                 return false;
             }
-            String query = MagicStrings.set_member_string + setName.toUpperCase() + " " + s;
+            String query = Constants.set_member_string + setName.toUpperCase() + " " + s;
             String response = Sraix.sraix(null, bot, query, "false", null, host, botId, null, "0");
             if ("true".equals(response)) {
                 inCache.add(s);
@@ -86,7 +86,7 @@ public class AIMLSet extends HashSet<String> {
                 outCache.add(s);
                 return false;
             }
-        } else if (setName.equals(MagicStrings.natural_number_set_name)) {
+        } else if (setName.equals(Constants.natural_number_set_name)) {
             return DIGITS_PATTERN.matcher(s).matches();
         }
         return super.contains(s);
@@ -132,8 +132,6 @@ public class AIMLSet extends HashSet<String> {
                     }
                     add(strLine.trim());
                 }
-                /*Category c = new Category(0, "ISA"+setName.toUpperCase()+" "+strLine.toUpperCase(), "*", "*", "true", MagicStrings.null_aiml_file);
-                bot.brain.addCategory(c);*/
             }
         } catch (Exception e) {
             log.error("Read error", e);

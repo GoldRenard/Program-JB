@@ -19,10 +19,11 @@
 */
 package org.alicebot.ab.etc;
 
-import org.alicebot.ab.*;
+import org.alicebot.ab.Bot;
+import org.alicebot.ab.Graphmaster;
+import org.alicebot.ab.NodemapperOperator;
 import org.alicebot.ab.configuration.BotConfiguration;
 import org.alicebot.ab.configuration.Constants;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.AIMLSet;
 import org.alicebot.ab.model.Category;
 import org.alicebot.ab.model.Nodemapper;
@@ -59,6 +60,13 @@ public class AB {
     public static String sraix_aiml_file = "sraix.aiml";
     public static String update_aiml_file = "update.aiml";
     public static String personality_aiml_file = "personality.aiml";
+    // filter responses
+    public static String inappropriate_filter = "FILTER INAPPROPRIATE";
+    public static String profanity_filter = "FILTER PROFANITY";
+    public static String insult_filter = "FILTER INSULT";
+    // default templates
+    public static String deleted_template = "deleted";
+    public static String unfinished_template = "unfinished";
 
     private static final Logger log = LoggerFactory.getLogger(AB.class);
 
@@ -168,7 +176,7 @@ public class AB {
      */
     private void deleteCategory(Category c) {
         c.setFilename(deleted_aiml_file);
-        c.setTemplate(MagicStrings.deleted_template);
+        c.setTemplate(deleted_template);
         deletedGraph.addCategory(c);
         writeDeletedIFCategories();
     }
@@ -179,9 +187,7 @@ public class AB {
      * @param c the category
      */
     private void skipCategory(Category c) {
-       /* c.setFilename(MagicStrings.unfinished_aiml_file);
-        c.setTemplate(MagicStrings.unfinished_template);
-        bot.unfinishedGraph.addCategory(c);
+       /* bot.unfinishedGraph.addCategory(c);
         log.warn("{} unfinished categories", bot.unfinishedGraph.getCategories().size());
         bot.writeUnfinishedIFCategories();*/
     }
@@ -256,7 +262,7 @@ public class AB {
                     } else {
                         categoryPatternThatTopic = partialPatternThatTopic;
                     }
-                    Category c = new Category(bot, 0, categoryPatternThatTopic, MagicStrings.blank_template, Constants.unknownAimlFile);
+                    Category c = new Category(bot, 0, categoryPatternThatTopic, Constants.blank_template, Constants.unknownAimlFile);
                     if (!bot.getBrain().existsCategory(c) && !deletedGraph.existsCategory(c)) {
                         patternGraph.addCategory(c);
                         suggestedCategories.add(c);
@@ -272,7 +278,7 @@ public class AB {
             }
             starPatternCnt++;
             try {
-                Category c = new Category(bot, 0, partialPatternThatTopic + " * <THAT> * <TOPIC> *", MagicStrings.blank_template, Constants.unknownAimlFile);
+                Category c = new Category(bot, 0, partialPatternThatTopic + " * <THAT> * <TOPIC> *", Constants.blank_template, Constants.unknownAimlFile);
                 if (!bot.getBrain().existsCategory(c) && !deletedGraph.existsCategory(c)/* && !unfinishedGraph.existsCategory(c)*/) {
                     patternGraph.addCategory(c);
                     suggestedCategories.add(c);
@@ -508,8 +514,7 @@ public class AB {
         }
         if (textLine.equals("q")) {
             System.exit(0);       // Quit program
-        }
-        else if (textLine.equals("wq")) {   // Write AIML Files and quit program
+        } else if (textLine.equals("wq")) {   // Write AIML Files and quit program
             bot.writeQuit();
             System.exit(0);
         } else if (textLine.equals("skip") || textLine.equals("")) { // skip this one for now
@@ -534,15 +539,15 @@ public class AB {
             template += botThinks;
             saveCategory(c.getPattern(), template, sraix_aiml_file);
         } else if (textLine.equals("p")) {   // filter inappropriate content
-            template = "<srai>" + MagicStrings.inappropriate_filter + "</srai>";
+            template = "<srai>" + inappropriate_filter + "</srai>";
             template += botThinks;
             saveCategory(c.getPattern(), template, inappropriate_aiml_file);
         } else if (textLine.equals("f")) { // filter profanity
-            template = "<srai>" + MagicStrings.profanity_filter + "</srai>";
+            template = "<srai>" + profanity_filter + "</srai>";
             template += botThinks;
             saveCategory(c.getPattern(), template, profanity_aiml_file);
         } else if (textLine.equals("i")) {
-            template = "<srai>" + MagicStrings.insult_filter + "</srai>";
+            template = "<srai>" + insult_filter + "</srai>";
             template += botThinks;
             saveCategory(c.getPattern(), template, insult_aiml_file);
         } else if (textLine.contains("<srai>") || textLine.contains("<sr/>")) {

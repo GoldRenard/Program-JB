@@ -19,7 +19,7 @@
 */
 package org.alicebot.ab;
 
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +185,7 @@ public class PreProcessor {
             //Read File Line By Line
             while ((strLine = reader.readLine()) != null) {
                 strLine = strLine.trim();
-                if (!strLine.startsWith(MagicStrings.text_comment_mark)) {
+                if (!strLine.startsWith(Constants.text_comment_mark)) {
                     Pattern pattern = Pattern.compile("\"(.*?)\",\"(.*?)\"", Pattern.DOTALL);
                     Matcher matcher = pattern.matcher(strLine);
                     if (matcher.find() && subCount < bot.getConfiguration().getMaxSubstitutions()) {

@@ -21,7 +21,6 @@ package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.model.Stars;
 
 /**
  * structure to hold binding of wildcards in input pattern, that pattern and topicpattern

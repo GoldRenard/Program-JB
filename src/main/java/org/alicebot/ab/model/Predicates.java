@@ -20,7 +20,7 @@
 package org.alicebot.ab.model;
 
 import org.alicebot.ab.Bot;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.utils.JapaneseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,10 +55,10 @@ public class Predicates extends HashMap<String, String> {
             }
         }
         if (key.equals("topic") && value.length() == 0) {
-            value = MagicStrings.default_get;
+            value = Constants.default_get;
         }
-        if (value.equals(MagicStrings.too_much_recursion)) {
-            value = MagicStrings.default_list_item;
+        if (value.equals(bot.getConfiguration().getLanguage().getTooMuchRecursion())) {
+            value = Constants.default_list_item;
         }
         return super.put(key, value);
     }
@@ -72,9 +72,9 @@ public class Predicates extends HashMap<String, String> {
     public String get(String key) {
         String result = super.get(key);
         if (result == null) {
-            result = MagicStrings.default_get;
+            result = Constants.default_get;
         }
-        return result != null ? result : MagicStrings.default_get;
+        return result != null ? result : Constants.default_get;
     }
 
     /**

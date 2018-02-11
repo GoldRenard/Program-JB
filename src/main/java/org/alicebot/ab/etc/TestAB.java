@@ -2,7 +2,7 @@ package org.alicebot.ab.etc;
 
 import org.alicebot.ab.Bot;
 import org.alicebot.ab.Chat;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class TestAB {
         while (true) {
             textLine = IOUtils.readInputTextLine("Human");
             if (textLine == null || textLine.length() < 1) {
-                textLine = MagicStrings.null_input;
+                textLine = Constants.null_input;
             }
             switch (textLine) {
                 case "q":
@@ -60,13 +60,11 @@ public class TestAB {
         //        bot.preProcessor.normalizeFile("c:/ab/bots/super/aiml/thats.txt", "c:/ab/bots/super/aiml/normalthats.txt");
         bot.getBrain().nodeStats();
         IOUtils testInput = new IOUtils(bot.getRootPath() + "/data/lognormal-500.txt", "read");
-        //IOUtils testInput = new IOUtils(MagicStrings.root_path + "/data/callmom-inputs.txt", "read");
         IOUtils testOutput = new IOUtils(bot.getRootPath() + "/data/lognormal-500-out.txt", "write");
-        //IOUtils testOutput = new IOUtils(MagicStrings.root_path + "/data/callmom-outputs.txt", "write");
         String textLine = testInput.readLine();
         while (textLine != null) {
             if (textLine.length() < 1) {
-                textLine = MagicStrings.null_input;
+                textLine = Constants.null_input;
             }
             if (textLine.equals("q")) {
                 System.exit(0);
@@ -75,7 +73,7 @@ public class TestAB {
                 System.exit(0);
             } else if (textLine.equals("ab")) {
                 testAB(bot, sample_file);
-            } else if (textLine.equals(MagicStrings.null_input)){
+            } else if (textLine.equals(Constants.null_input)) {
                 testOutput.writeLine("");
             } else if (textLine.startsWith("#")) {
                 testOutput.writeLine(textLine);

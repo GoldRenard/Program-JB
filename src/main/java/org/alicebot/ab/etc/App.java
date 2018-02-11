@@ -19,9 +19,8 @@
 */
 package org.alicebot.ab.etc;
 
-import org.alicebot.ab.*;
+import org.alicebot.ab.Bot;
 import org.alicebot.ab.configuration.BotConfiguration;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,6 @@ public class App {
                 .jpTokenize(false)
                 .graphShortCuts(true);
 
-        log.info(MagicStrings.program_name_version);
         for (String s : args) {
             String[] splitArg = s.split("=");
             if (splitArg.length >= 2) {
@@ -56,6 +54,7 @@ public class App {
             }
         }
         BotConfiguration configuration = builder.build();
+        log.info(configuration.getProgramName());
         Bot bot = new Bot(configuration);
 
         if (bot.getBrain().getCategories().size() < AB.brain_print_size) {

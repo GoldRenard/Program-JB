@@ -62,6 +62,23 @@ public class BotConfiguration {
     @Builder.Default
     private int maxLoops = 10000;
 
+    @Builder.Default
+    private String programName = "Program AB 0.0.6.26 beta -- AI Foundation Reference AIML 2.1 implementation";
+    @Builder.Default
+    private String defaultLanguage = "EN";
+    @Builder.Default
+    private String aimlifSplitChar = ",";
+    @Builder.Default
+    private String aimlifSplitCharName = "\\#Comma";
+    @Builder.Default
+    private String aimlifFileSuffix = ".csv";
+    @Builder.Default
+    private String pannousApiKey = "guest";
+    @Builder.Default
+    private String pannousLogin = "test-user";
+    @Builder.Default
+    private LanguageConfiguration language = LanguageConfiguration.builder().build();
+
     public String getName() {
         return StringUtils.isNotBlank(name) ? name : DEFAULT_NAME;
     }

@@ -21,7 +21,7 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.Utilities;
 import org.slf4j.Logger;
@@ -505,7 +505,7 @@ public class Graphmaster {
                                  String matchTrace) {
         matchTrace += "[" + wildcard + ",]";
         if (path != null && NodemapperOperator.containsKey(node, wildcard)) {
-            setStars(bot.getProperties().get(MagicStrings.null_star), starIndex, starState, inputStars, thatStars, topicStars);
+            setStars(bot.getProperties().get(Constants.null_star), starIndex, starState, inputStars, thatStars, topicStars);
             Nodemapper nextNode = NodemapperOperator.get(node, wildcard);
             return match(path, nextNode, input, starState, starIndex + 1, inputStars, thatStars, topicStars, matchTrace);
         }
@@ -559,7 +559,7 @@ public class Graphmaster {
     }
 
     private Nodemapper setMatch(Path path, Nodemapper node, String input, String starState, int starIndex,
-                              String[] inputStars, String[] thatStars, String[] topicStars, String matchTrace) {
+                                String[] inputStars, String[] thatStars, String[] topicStars, String matchTrace) {
         if (log.isDebugEnabled()) {
             log.debug("Graphmaster.setMatch(path: {}, node: {}, input: {}, starState: {}, " +
                             "starIndex: {}, inputStars, thatStars, topicStars, matchTrace: {})",
@@ -641,7 +641,7 @@ public class Graphmaster {
             log.info("Null graph");
         } else {
             if (NodemapperOperator.isLeaf(node) || node.isShortCut()) {
-                String template = Category.templateToLine(node.getCategory().getTemplate());
+                String template = node.getCategory().getTemplateLine();
                 template = template.substring(0, Math.min(16, template.length()));
                 if (node.isShortCut()) {
                     log.info("{}({}[{}])--<THAT>-->X(1)--*-->X(1)--<TOPIC>-->X(1)--*-->{}...", partial,

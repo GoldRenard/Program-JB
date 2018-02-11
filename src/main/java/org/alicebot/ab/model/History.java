@@ -20,7 +20,7 @@
 package org.alicebot.ab.model;
 
 import lombok.Getter;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 
 /**
  * History object to maintain history of input, that request and response
@@ -84,7 +84,7 @@ public class History<T> {
     public String getString(int index) {
         if (index < history.length) {
             if (history[index] == null) {
-                return MagicStrings.unknown_history_item;
+                return Constants.unknown_history_item;
             }
             return (String) history[index];
         }

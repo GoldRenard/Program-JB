@@ -21,7 +21,7 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.model.History;
 import org.alicebot.ab.model.Predicates;
 import org.alicebot.ab.utils.IOUtils;
@@ -43,7 +43,7 @@ public class Chat {
     private final Bot bot;
     private final TripleStore tripleStore;
     private boolean doWrites;
-    private String customerId = MagicStrings.default_Customer_id;
+    private String customerId;
     private History<History> thatHistory;
     private History<String> requestHistory;
     private History<String> responseHistory;
@@ -80,13 +80,13 @@ public class Chat {
         responseHistory = new History<>(maxHistory, "response");
         inputHistory = new History<>(maxHistory, "input");
         History<String> contextThatHistory = new History<>(maxHistory);
-        contextThatHistory.add(MagicStrings.default_that);
+        contextThatHistory.add(Constants.default_that);
         this.thatHistory.add(contextThatHistory);
         addPredicates();
         addTriples();
         this.predicates = new Predicates(bot);
-        this.predicates.put("topic", MagicStrings.default_topic);
-        this.predicates.put("jsenabled", MagicStrings.js_enabled);
+        this.predicates.put("topic", Constants.default_topic);
+        this.predicates.put("jsenabled", Constants.js_enabled);
 
         if (log.isTraceEnabled()) {
             log.trace("Chat Session Created for bot {}", bot.getName());
@@ -174,12 +174,12 @@ public class Chat {
                 repetition = false;
             }
         }
-        if (input.equals(MagicStrings.null_input)) {
+        if (input.equals(Constants.null_input)) {
             repetition = false;
         }
         inputHistory.add(input);
         if (repetition) {
-            input = MagicStrings.repetition_detected;
+            input = Constants.repetition_detected;
         }
 
         String response;
@@ -192,7 +192,7 @@ public class Chat {
         String sentences[] = bot.getPreProcessor().sentenceSplit(normResponse);
         for (String s : sentences) {
             if (s.trim().equals("")) {
-                s = MagicStrings.default_that;
+                s = Constants.default_that;
             }
             contextThatHistory.add(s);
         }
@@ -208,7 +208,7 @@ public class Chat {
      */
     private String respond(String input, History<String> contextThatHistory) {
         History hist = thatHistory.get(0);
-        String that = hist != null ? hist.getString(0) : MagicStrings.default_that;
+        String that = hist != null ? hist.getString(0) : Constants.default_that;
         return respond(input, that, predicates.get("topic"), contextThatHistory);
     }
 
@@ -245,6 +245,6 @@ public class Chat {
         } catch (Exception e) {
             log.error("Error: ", e);
         }
-        return MagicStrings.error_bot_response;
+        return bot.getConfiguration().getLanguage().getErrorResponse();
     }
 }

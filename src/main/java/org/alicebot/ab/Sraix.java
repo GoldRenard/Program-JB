@@ -19,7 +19,6 @@
 */
 package org.alicebot.ab;
 
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.CalendarUtils;
 import org.alicebot.ab.utils.NetworkUtils;
 import org.json.JSONArray;
@@ -36,21 +35,27 @@ public class Sraix {
 
     private static final Logger log = LoggerFactory.getLogger(Sraix.class);
 
+    public final static String sraix_failed = "SRAIXFAILED";
+    public final static String sraix_no_hint = "nohint";
+    public final static String sraix_event_hint = "event";
+    public final static String sraix_pic_hint = "pic";
+    public final static String sraix_shopping_hint = "shopping";
+
     private final static Map<String, String> custIdMap = new ConcurrentHashMap<>();
 
     public static String sraix(Chat chatSession, Bot bot, String input, String defaultResponse, String hint, String host, String botid, String apiKey, String limit) {
         String response;
         if (!bot.getConfiguration().isEnableNetworkConnection()) {
-            response = MagicStrings.sraix_failed;
+            response = sraix_failed;
         } else if (host != null && botid != null) {
             response = sraixPandorabots(input, host, botid);
         } else {
             response = sraixPannous(input, hint, chatSession);
         }
         log.debug("Sraix: response = {} defaultResponse = {}", response, defaultResponse);
-        if (response.equals(MagicStrings.sraix_failed)) {
+        if (response.equals(sraix_failed)) {
             if (chatSession != null && defaultResponse == null) {
-                response = bot.getProcessor().respond(MagicStrings.sraix_failed, "nothing",
+                response = bot.getProcessor().respond(sraix_failed, "nothing",
                         "nothing", chatSession);
             } else if (defaultResponse != null) {
                 response = defaultResponse;
@@ -62,7 +67,7 @@ public class Sraix {
     public static String sraixPandorabots(String input, String host, String botid) {
         String responseContent = pandorabotsRequest(input, host, botid);
         if (responseContent == null) {
-            return MagicStrings.sraix_failed;
+            return sraix_failed;
         }
         return pandorabotsResponse(responseContent, host, botid);
     }
@@ -87,7 +92,7 @@ public class Sraix {
     }
 
     public static String pandorabotsResponse(String sraixResponse, String host, String botid) {
-        String botResponse = MagicStrings.sraix_failed;
+        String botResponse = sraix_failed;
         try {
             int n1 = sraixResponse.indexOf("<that>");
             int n2 = sraixResponse.indexOf("</that>");
@@ -116,7 +121,7 @@ public class Sraix {
         try {
             String rawInput = input;
             if (hint == null) {
-                hint = MagicStrings.sraix_no_hint;
+                hint = sraix_no_hint;
             }
             input = " " + input + " ";
             input = input.replace(" point ", ".");
@@ -131,11 +136,14 @@ public class Sraix {
             int offset = CalendarUtils.timeZoneOffset();
             String locationString = "";
 
+            String apiKey = chatSession.getBot().getConfiguration().getPannousApiKey();
+            String login = chatSession.getBot().getConfiguration().getPannousLogin();
+
             // https://weannie.pannous.com/api?input=when+is+daylight+savings+time+in+the+us&locale=en_US&login=pandorabots&ip=169.254.178.212&botid=0&key=CKNgaaVLvNcLhDupiJ1R8vtPzHzWc8mhIQDFSYWj&exclude=Dialogues,ChatBot&out=json
             // exclude=Dialogues,ChatBot&out=json&clientFeatures=show-images,reminder,say&debug=true
             String url = "http://ask.pannous.com/api?input=" + input + "&locale=en_US&timeZone=" + offset +
-                    locationString + "&login=" + MagicStrings.pannous_login + "&ip=" +
-                    NetworkUtils.localIPAddress() + "&botid=0&key=" + MagicStrings.pannous_api_key +
+                    locationString + "&login=" + login + "&ip=" +
+                    NetworkUtils.localIPAddress() + "&botid=0&key=" + apiKey +
                     "&exclude=Dialogues,ChatBot&out=json&clientFeatures=show-images,reminder,say&debug=true";
             if (log.isTraceEnabled()) {
                 log.trace("in Sraix.sraixPannous, url: '{}'", url);
@@ -145,11 +153,11 @@ public class Sraix {
             String imgRef = "";
             String urlRef = "";
             if (page.isEmpty()) {
-                text = MagicStrings.sraix_failed;
+                text = sraix_failed;
             } else {
                 JSONArray outputJson = new JSONObject(page).getJSONArray("output");
                 if (outputJson.length() == 0) {
-                    text = MagicStrings.sraix_failed;
+                    text = sraix_failed;
                 } else {
                     JSONObject firstHandler = outputJson.getJSONObject(0);
                     JSONObject actions = firstHandler.getJSONObject("actions");
@@ -177,12 +185,11 @@ public class Sraix {
                                         "<hour>" + hour + "</hour>" +
                                         "<minute>" + minute + "</minute>" +
                                         "<duration>" + duration + "</duration>";
-
                             } else {
-                                text = MagicStrings.schedule_error;
+                                text = chatSession.getBot().getConfiguration().getLanguage().getScheduleError();
                             }
                         }
-                    } else if (actions.has("say") && !hint.equals(MagicStrings.sraix_pic_hint) && !hint.equals(MagicStrings.sraix_shopping_hint)) {
+                    } else if (actions.has("say") && !hint.equals(sraix_pic_hint) && !hint.equals(sraix_shopping_hint)) {
                         Object obj = actions.get("say");
                         if (obj instanceof JSONObject) {
                             JSONObject sObj = (JSONObject) obj;
@@ -208,14 +215,14 @@ public class Sraix {
                         }
                         imgRef = "<a href=\"" + imgRef + "\"><img src=\"" + imgRef + "\"/></a>";
                     }
-                    if (hint.equals(MagicStrings.sraix_shopping_hint) && actions.has("open") && actions.getJSONObject("open").has("url")) {
+                    if (hint.equals(sraix_shopping_hint) && actions.has("open") && actions.getJSONObject("open").has("url")) {
                         urlRef = "<oob><url>" + actions.getJSONObject("open").getString("url") + "</oob></url>";
                     }
                 }
-                if (hint.equals(MagicStrings.sraix_event_hint) && !text.startsWith("<year>")) {
-                    return MagicStrings.sraix_failed;
-                } else if (text.equals(MagicStrings.sraix_failed)) {
-                    return chatSession.getBot().getProcessor().respond(MagicStrings.sraix_failed, "nothing", "nothing", chatSession);
+                if (hint.equals(sraix_event_hint) && !text.startsWith("<year>")) {
+                    return sraix_failed;
+                } else if (text.equals(sraix_failed)) {
+                    return chatSession.getBot().getProcessor().respond(sraix_failed, "nothing", "nothing", chatSession);
                 } else {
                     text = text.replace("&#39;", "'");
                     text = text.replace("&apos;", "'");
@@ -236,6 +243,6 @@ public class Sraix {
         } catch (Exception e) {
             log.error("Error:", e);
         }
-        return MagicStrings.sraix_failed;
+        return sraix_failed;
     }
 }

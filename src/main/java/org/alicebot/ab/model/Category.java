@@ -16,7 +16,8 @@
         License along with this library; if not, write to the
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
-*/package org.alicebot.ab.model;
+*/
+package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +25,6 @@ import org.alicebot.ab.AIMLProcessor;
 import org.alicebot.ab.Bot;
 import org.alicebot.ab.Graphmaster;
 import org.alicebot.ab.configuration.Constants;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +43,7 @@ public class Category {
 
     private static AtomicLong categoryCnt = new AtomicLong();
 
+    private Bot bot;
     private String pattern;
     private String that;
     private String topic;
@@ -145,13 +146,14 @@ public class Category {
     /**
      * convert a template to a single-line representation by replacing "," with #Comma and newline with #Newline
      *
-     * @param template original template
      * @return template on a single line of text
      */
-    public static String templateToLine(String template) {
+    public String getTemplateLine() {
         String result = template;
         result = result.replaceAll("(\r\n|\n\r|\r|\n)", "\\#Newline");
-        result = result.replaceAll(MagicStrings.aimlif_split_char, MagicStrings.aimlif_split_char_name);
+        result = result.replaceAll(
+                bot.getConfiguration().getAimlifSplitChar(),
+                bot.getConfiguration().getAimlifSplitCharName());
         return result;
     }
 
@@ -161,9 +163,11 @@ public class Category {
      * @param line template on a single line of text
      * @return original multi-line template
      */
-    private static String lineToTemplate(String line) {
+    private static String lineToTemplate(Bot bot, String line) {
         String result = line.replaceAll("\\#Newline", "\n");
-        result = result.replaceAll(MagicStrings.aimlif_split_char_name, MagicStrings.aimlif_split_char);
+        result = result.replaceAll(
+                bot.getConfiguration().getAimlifSplitCharName(),
+                bot.getConfiguration().getAimlifSplitChar());
         return result;
     }
 
@@ -174,8 +178,8 @@ public class Category {
      * @return Category object
      */
     public static Category IFToCategory(Bot bot, String IF) {
-        String[] split = IF.split(MagicStrings.aimlif_split_char);
-        return new Category(bot, Integer.parseInt(split[0]), split[1], split[2], split[3], lineToTemplate(split[4]), split[5]);
+        String[] split = IF.split(bot.getConfiguration().getAimlifSplitChar());
+        return new Category(bot, Integer.parseInt(split[0]), split[1], split[2], split[3], lineToTemplate(bot, split[4]), split[5]);
     }
 
     /**
@@ -185,9 +189,9 @@ public class Category {
      * @return category in AIML format
      */
     public static String categoryToIF(Category category) {
-        String c = MagicStrings.aimlif_split_char;
+        String c = category.bot.getConfiguration().getAimlifSplitChar();
         return category.getActivationCnt() + c + category.getPattern() + c + category.getThat() + c +
-                category.getTopic() + c + templateToLine(category.getTemplate()) + c + category.getFilename();
+                category.getTopic() + c + category.getTemplateLine() + c + category.getFilename();
     }
 
     /**
@@ -296,6 +300,7 @@ public class Category {
      */
 
     public Category(Bot bot, int activationCnt, String pattern, String that, String topic, String template, String filename) {
+        this.bot = bot;
         if (bot != null && bot.getConfiguration().isFixExcelCsv()) {
             pattern = Utilities.fixCSV(pattern);
             that = Utilities.fixCSV(that);

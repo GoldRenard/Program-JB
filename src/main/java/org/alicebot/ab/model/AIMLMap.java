@@ -19,8 +19,9 @@
 */
 package org.alicebot.ab.model;
 
-import org.alicebot.ab.*;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.Bot;
+import org.alicebot.ab.Sraix;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.i18n.Inflector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,19 +64,19 @@ public class AIMLMap extends HashMap<String, String> {
      */
     public String get(String key) {
         String value;
-        if (mapName.equals(MagicStrings.map_successor)) {
+        if (mapName.equals(Constants.map_successor)) {
             try {
                 int number = Integer.parseInt(key);
                 return String.valueOf(number + 1);
             } catch (Exception e) {
-                return MagicStrings.default_map;
+                return Constants.default_map;
             }
-        } else if (mapName.equals(MagicStrings.map_predecessor)) {
+        } else if (mapName.equals(Constants.map_predecessor)) {
             try {
                 int number = Integer.parseInt(key);
                 return String.valueOf(number - 1);
             } catch (Exception e) {
-                return MagicStrings.default_map;
+                return Constants.default_map;
             }
         } else if (mapName.equals("singular")) {
             return Inflector.getInstance().singularize(key).toLowerCase();
@@ -84,14 +85,14 @@ public class AIMLMap extends HashMap<String, String> {
         } else if (isExternal && bot.getConfiguration().isEnableExternalMaps()) {
             //String[] split = key.split(" ");
             String query = mapName.toUpperCase() + " " + key;
-            String response = Sraix.sraix(null, bot, query, MagicStrings.default_map, null, host, botId, null, "0");
+            String response = Sraix.sraix(null, bot, query, Constants.default_map, null, host, botId, null, "0");
             log.info("External {}({})={}" + response, mapName, key, response);
             value = response;
         } else {
             value = super.get(key);
         }
         if (value == null) {
-            value = MagicStrings.default_map;
+            value = Constants.default_map;
         }
         if (log.isDebugEnabled()) {
             log.debug("AIMLMap get {}={}", key, value);
@@ -142,7 +143,7 @@ public class AIMLMap extends HashMap<String, String> {
                 }
                 if (splitLine.length >= 2) {
                     count++;
-                    if (strLine.startsWith(MagicStrings.remote_map_key)) {
+                    if (strLine.startsWith(Constants.remote_map_key)) {
                         if (splitLine.length >= 3) {
                             host = splitLine[1];
                             botId = splitLine[2];

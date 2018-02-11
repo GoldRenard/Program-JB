@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.alicebot.ab.configuration.BotConfiguration;
 import org.alicebot.ab.configuration.Constants;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.IOUtils;
 import org.alicebot.ab.utils.Timer;
@@ -61,7 +60,7 @@ public class Bot {
 
     private Graphmaster learnGraph;
 
-    private String name = MagicStrings.default_bot_name;
+    private String name;
 
     private HashMap<String, AIMLSet> setMap = new HashMap<>();
 
@@ -113,19 +112,17 @@ public class Bot {
             log.debug("Loaded {} map elements.", count);
         }
         this.pronounSet = getPronouns();
-        this.setMap.put(MagicStrings.natural_number_set_name, new AIMLSet(MagicStrings.natural_number_set_name, this));
-        this.mapMap.put(MagicStrings.map_successor, new AIMLMap(MagicStrings.map_successor, this));
-        this.mapMap.put(MagicStrings.map_predecessor, new AIMLMap(MagicStrings.map_predecessor, this));
-        this.mapMap.put(MagicStrings.map_singular, new AIMLMap(MagicStrings.map_singular, this));
-        this.mapMap.put(MagicStrings.map_plural, new AIMLMap(MagicStrings.map_plural, this));
+        this.setMap.put(Constants.natural_number_set_name, new AIMLSet(Constants.natural_number_set_name, this));
+        this.mapMap.put(Constants.map_successor, new AIMLMap(Constants.map_successor, this));
+        this.mapMap.put(Constants.map_predecessor, new AIMLMap(Constants.map_predecessor, this));
+        this.mapMap.put(Constants.map_singular, new AIMLMap(Constants.map_singular, this));
+        this.mapMap.put(Constants.map_plural, new AIMLMap(Constants.map_plural, this));
 
         Date aimlDate = new Date(new File(aimlPath).lastModified());
         Date aimlIFDate = new Date(new File(aimlifPath).lastModified());
         if (log.isDebugEnabled()) {
             log.debug("AIML modified {} AIMLIF modified {}", aimlDate, aimlIFDate);
         }
-        MagicStrings.pannous_api_key = Utilities.getPannousAPIKey(this);
-        MagicStrings.pannous_login = Utilities.getPannousLogin(this);
 
         switch (configuration.getAction()) {
             case "aiml2csv":
@@ -148,7 +145,8 @@ public class Bot {
                 break;
         }
 
-        Category version = new Category(this, 0, "PROGRAM VERSION", "*", "*", MagicStrings.program_name_version, "update.aiml");
+        Category version = new Category(this, 0, "PROGRAM VERSION", "*", "*",
+                configuration.getProgramName(), "update.aiml");
         brain.addCategory(version);
         brain.nodeStats();
         learnfGraph.nodeStats();
@@ -266,7 +264,7 @@ public class Bot {
                 for (File listOfFile : listOfFiles) {
                     if (listOfFile.isFile()) {
                         file = listOfFile.getName();
-                        if (file.endsWith(MagicStrings.aimlif_file_suffix) || file.endsWith(MagicStrings.aimlif_file_suffix.toUpperCase())) {
+                        if (file.endsWith(configuration.getAimlifFileSuffix()) || file.endsWith(configuration.getAimlifFileSuffix().toUpperCase())) {
                             if (log.isTraceEnabled()) {
                                 log.trace("Reading AIML {}", file);
                             }
@@ -308,7 +306,7 @@ public class Bot {
      */
     public void readCertainIFCategories(Graphmaster graph, String fileName) {
         int count;
-        String filePath = aimlifPath + "/" + fileName + MagicStrings.aimlif_file_suffix;
+        String filePath = aimlifPath + "/" + fileName + configuration.getAimlifFileSuffix();
         File file = new File(filePath);
         if (file.exists()) {
             try {
@@ -336,7 +334,7 @@ public class Bot {
         if (log.isTraceEnabled()) {
             log.trace("writeCertainIFCaegories {} size={}", file, graph.getCategories().size());
         }
-        writeIFCategories(graph.getCategories(), file + MagicStrings.aimlif_file_suffix);
+        writeIFCategories(graph.getCategories(), file + configuration.getAimlifFileSuffix());
         File dir = new File(aimlifPath);
         return dir.setLastModified(new Date().getTime());
     }
@@ -390,7 +388,7 @@ public class Bot {
                     if (fileMap.containsKey(fileName)) {
                         bw = fileMap.get(fileName);
                     } else {
-                        bw = new BufferedWriter(new FileWriter(aimlifPath + "/" + fileName + MagicStrings.aimlif_file_suffix));
+                        bw = new BufferedWriter(new FileWriter(aimlifPath + "/" + fileName + configuration.getAimlifFileSuffix()));
                         fileMap.put(fileName, bw);
                     }
                     bw.write(Category.categoryToIF(c));

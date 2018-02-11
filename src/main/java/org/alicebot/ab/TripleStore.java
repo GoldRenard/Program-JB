@@ -2,7 +2,7 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.etc.TestAB;
 import org.alicebot.ab.model.Clause;
 import org.alicebot.ab.model.Tuple;
@@ -114,7 +114,7 @@ public class TripleStore {
             objectTriples.put(object, existingTriples);
             return id;
         }
-        return MagicStrings.undefined_triple;
+        return Constants.undefined_triple;
     }
 
     public Set<String> allTriples() {
@@ -123,7 +123,7 @@ public class TripleStore {
 
     public String addTriple(String subject, String predicate, String object) {
         if (subject == null || predicate == null || object == null) {
-            return MagicStrings.undefined_triple;
+            return Constants.undefined_triple;
         }
         Triple triple = new Triple(subject, predicate, object);
         return mapTriple(triple);
@@ -131,7 +131,7 @@ public class TripleStore {
 
     public String deleteTriple(String subject, String predicate, String object) {
         if (subject == null || predicate == null || object == null) {
-            return MagicStrings.undefined_triple;
+            return Constants.undefined_triple;
         }
         if (log.isTraceEnabled()) {
             log.trace("Deleting {}:{}:{}", subject, predicate, object);
@@ -261,19 +261,19 @@ public class TripleStore {
         Clause newClause = new Clause(clause);
         if (vars.contains(subj)) {
             String value = tuple.getValue(subj);
-            if (!value.equals(MagicStrings.unbound_variable)) {
+            if (!value.equals(Constants.unbound_variable)) {
                 newClause.setSubj(value);
             }
         }
         if (vars.contains(pred)) {
             String value = tuple.getValue(pred);
-            if (!value.equals(MagicStrings.unbound_variable)) {
+            if (!value.equals(Constants.unbound_variable)) {
                 newClause.setPred(value);
             }
         }
         if (vars.contains(obj)) {
             String value = tuple.getValue(obj);
-            if (!value.equals(MagicStrings.unbound_variable)) {
+            if (!value.equals(Constants.unbound_variable)) {
                 newClause.setObj(value);
             }
         }

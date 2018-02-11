@@ -19,7 +19,7 @@
 */
 package org.alicebot.ab.model;
 
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class Properties extends HashMap<String, String> {
      */
     public String get(String key) {
         String result = super.get(key);
-        return result != null ? result : MagicStrings.default_property;
+        return result != null ? result : Constants.default_property;
     }
 
     /**

@@ -2,7 +2,6 @@ package org.alicebot.ab.utils;
 
 import net.reduls.sanmoku.Tagger;
 import org.alicebot.ab.AIMLProcessor;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;
@@ -40,12 +39,14 @@ public class JapaneseUtils {
         }
         String result = "";
         result = tokenizeXML(sentence);
-        while (result.contains("$ ")) result = result.replace("$ ", "$");
-        while (result.contains("  ")) result = result.replace("  ", " ");
-        while (result.contains("anon ")) result = result.replace("anon ", "anon"); // for Triple Store
-        result = result.trim();
-        if (log.isTraceEnabled()) {
-            log.trace("tokenizeSentence: {} --> result: {}", sentence, result);
+        if (result != null) {
+            while (result.contains("$ ")) result = result.replace("$ ", "$");
+            while (result.contains("  ")) result = result.replace("  ", " ");
+            while (result.contains("anon ")) result = result.replace("anon ", "anon"); // for Triple Store
+            result = result.trim();
+            if (log.isTraceEnabled()) {
+                log.trace("tokenizeSentence: {} --> result: {}", sentence, result);
+            }
         }
         return result;
     }
@@ -54,7 +55,7 @@ public class JapaneseUtils {
         if (log.isDebugEnabled()) {
             log.debug("tokenizeXML: {}", xmlExpression);
         }
-        String response = MagicStrings.template_failed;
+        String response = "";
         try {
             xmlExpression = "<sentence>" + xmlExpression + "</sentence>";
             Node root = DomUtils.parseString(xmlExpression);
@@ -118,7 +119,7 @@ public class JapaneseUtils {
             for (int i = 0; i < XMLAttributes.getLength(); i++) {
                 attributes
                         .append(" ")
-                        .append( XMLAttributes.item(i).getNodeName())
+                        .append(XMLAttributes.item(i).getNodeName())
                         .append("=\"")
                         .append(XMLAttributes.item(i).getNodeValue())
                         .append("\"");

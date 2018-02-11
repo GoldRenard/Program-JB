@@ -3,7 +3,7 @@ package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicStrings;
+import org.alicebot.ab.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class Tuple extends HashMap<String, String> {
         }
         if (varSet != null) {
             for (String key : varSet) {
-                put(key, MagicStrings.unbound_variable);
+                put(key, Constants.unbound_variable);
             }
         }
         this.name = "tuple" + index.incrementAndGet();
@@ -55,13 +55,13 @@ public class Tuple extends HashMap<String, String> {
     public String getValue(String var) {
         String result = get(var);
         if (result == null) {
-            return MagicStrings.default_get;
+            return Constants.default_get;
         }
         return result;
     }
 
     public void bind(String var, String value) {
-        if (get(var) != null && !get(var).equals(MagicStrings.unbound_variable)) {
+        if (get(var) != null && !get(var).equals(Constants.unbound_variable)) {
             log.warn("{} already bound to {}", var, get(var));
         } else {
             put(var, value);
@@ -84,8 +84,8 @@ public class Tuple extends HashMap<String, String> {
                 return false;
             }
         }
-        return !values().contains(MagicStrings.unbound_variable)
-                && !tuple.values().contains(MagicStrings.unbound_variable);
+        return !values().contains(Constants.unbound_variable)
+                && !tuple.values().contains(Constants.unbound_variable);
     }
 
     @Override

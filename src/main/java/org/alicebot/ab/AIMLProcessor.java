@@ -20,7 +20,6 @@
 package org.alicebot.ab;
 
 import org.alicebot.ab.configuration.Constants;
-import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.*;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +61,10 @@ public class AIMLProcessor {
     /**
      * when parsing an AIML file, process a category element.
      *
-     * @param n        current XML parse node.
-     * @param categories                      list of categories found so far.
-     * @param topic                           value of topic in case this category is wrapped in a <topic> tag
-     * @param aimlFile                        name of AIML file being parsed.
+     * @param n          current XML parse node.
+     * @param categories list of categories found so far.
+     * @param topic      value of topic in case this category is wrapped in a <topic> tag
+     * @param aimlFile   name of AIML file being parsed.
      */
     private void categoryProcessor(Node n, ArrayList<Category> categories, String topic, String aimlFile, String language) {
         String pattern, that, template;
@@ -152,7 +151,7 @@ public class AIMLProcessor {
         try {
             ArrayList<Category> categories = new ArrayList<>();
             Node root = DomUtils.parseFile(directory + "/" + aimlFile);      // <aiml> tag
-            String language = MagicStrings.default_language;
+            String language = bot.getConfiguration().getDefaultLanguage();
             if (root.hasAttributes()) {
                 NamedNodeMap XMLAttributes = root.getAttributes();
                 for (int i = 0; i < XMLAttributes.getLength(); i++) {
@@ -222,10 +221,10 @@ public class AIMLProcessor {
         }
         String response;
         if (input == null || input.length() == 0) {
-            input = MagicStrings.null_input;
+            input = Constants.null_input;
         }
         sraiCount = srCnt;
-        response = MagicStrings.default_bot_response;
+        response = chatSession.getBot().getConfiguration().getLanguage().getDefaultResponse();
         try {
             Nodemapper leaf = chatSession.getBot().getBrain().match(input, that, topic);
             if (leaf == null) {
@@ -396,9 +395,9 @@ public class AIMLProcessor {
         sraiCount++;
         if (sraiCount > bot.getConfiguration().getMaxRecursionCount()
                 || ps.getDepth() > bot.getConfiguration().getMaxRecursionDepth()) {
-            return MagicStrings.too_much_recursion;
+            return bot.getConfiguration().getLanguage().getTooMuchRecursion();
         }
-        String response = MagicStrings.default_bot_response;
+        String response = bot.getConfiguration().getLanguage().getDefaultResponse();
         try {
             String result = evalTagContent(node, ps, null);
             result = result.trim();
@@ -500,7 +499,7 @@ public class AIMLProcessor {
      * @return the map result or a string indicating the key was not found
      */
     private String map(Node node, ParseState ps) {
-        String result = MagicStrings.default_map;
+        String result = Constants.default_map;
         Set<String> attributeNames = Utilities.stringSet("name");
         String mapName = getAttributeOrTagValue(node, ps, "name");
         String contents = evalTagContent(node, ps, attributeNames);
@@ -516,7 +515,7 @@ public class AIMLProcessor {
                 log.trace("AIMLProcessor map {} ", result);
             }
             if (result == null) {
-                result = MagicStrings.default_map;
+                result = Constants.default_map;
             }
             result = result.trim();
         }
@@ -533,7 +532,7 @@ public class AIMLProcessor {
      */
     private String set(Node node, ParseState ps) {
         if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.set(node: {}, ps: {})", node , ps);
+            log.trace("AIMLProcessor.set(node: {}, ps: {})", node, ps);
         }
         Set<String> attributeNames = Utilities.stringSet("name", "var");
         String predicateName = getAttributeOrTagValue(node, ps, "name");
@@ -572,9 +571,9 @@ public class AIMLProcessor {
      */
     private String get(Node node, ParseState ps) {
         if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.get(node: {}, ps: {})", node , ps);
+            log.trace("AIMLProcessor.get(node: {}, ps: {})", node, ps);
         }
-        String result = MagicStrings.default_get;
+        String result = Constants.default_get;
         String predicateName = getAttributeOrTagValue(node, ps, "name");
         String varName = getAttributeOrTagValue(node, ps, "var");
         String tupleName = getAttributeOrTagValue(node, ps, "tuple");
@@ -593,7 +592,7 @@ public class AIMLProcessor {
 
     private String tupleGet(String tupleName, String varName) {
         Tuple tuple = tupleMap.get(tupleName);
-        return tuple == null ? MagicStrings.default_get : tuple.getValue(varName);
+        return tuple == null ? Constants.default_get : tuple.getValue(varName);
     }
 
     /**
@@ -605,7 +604,7 @@ public class AIMLProcessor {
      * @return the bot property or a string indicating the property was not found.
      */
     private String bot(Node node, ParseState ps) {
-        String result = MagicStrings.default_property;
+        String result = Constants.default_property;
         String propertyName = getAttributeOrTagValue(node, ps, "name");
         if (propertyName != null) {
             result = ps.getChatSession().getBot().getProperties().get(propertyName).trim();
@@ -726,7 +725,7 @@ public class AIMLProcessor {
      */
     private String topicStar(Node node, ParseState ps) {
         int index = getIndexValue(node, ps);
-        if (ps.getStarBindings().getTopicStars().star(index) == null){
+        if (ps.getStarBindings().getTopicStars().star(index) == null) {
             return "";
         }
         return ps.getStarBindings().getTopicStars().star(index).trim();
@@ -736,7 +735,7 @@ public class AIMLProcessor {
      * return the client ID.
      * implements {@code <id/>}
      *
-     * @param ps   AIML parse state
+     * @param ps AIML parse state
      * @return client ID
      */
 
@@ -748,7 +747,7 @@ public class AIMLProcessor {
      * return the size of the robot brain (number of AIML categories loaded).
      * implements {@code <size/>}
      *
-     * @param ps   AIML parse state
+     * @param ps AIML parse state
      * @return bot brain size
      */
     private static String size(ParseState ps) {
@@ -760,7 +759,7 @@ public class AIMLProcessor {
      * return the size of the robot vocabulary (number of words the bot can recognize).
      * implements {@code <vocabulary/>}
      *
-     * @param ps   AIML parse state
+     * @param ps AIML parse state
      * @return bot vocabulary size
      */
     private static String vocabulary(ParseState ps) {
@@ -774,8 +773,8 @@ public class AIMLProcessor {
      *
      * @return AIML program name and version.
      */
-    private static String program() {
-        return MagicStrings.program_name_version;
+    private String program() {
+        return bot.getConfiguration().getProgramName();
     }
 
     /**
@@ -800,7 +799,7 @@ public class AIMLProcessor {
                 log.error("Error: ", e);
             }
         }
-        String that = MagicStrings.unknown_history_item;
+        String that = Constants.unknown_history_item;
         History hist = ps.getChatSession().getThatHistory().get(index);
         if (hist != null) {
             that = (String) hist.get(jndex);
@@ -860,7 +859,7 @@ public class AIMLProcessor {
     private String system(Node node, ParseState ps) {
         Set<String> attributeNames = Utilities.stringSet("timeout");
         String evaluatedContents = evalTagContent(node, ps, attributeNames);
-        return IOUtils.system(evaluatedContents, MagicStrings.system_failed);
+        return IOUtils.system(evaluatedContents, bot.getConfiguration().getLanguage().getSystemFailed());
     }
 
     /**
@@ -1137,8 +1136,9 @@ public class AIMLProcessor {
         int loopCnt = 0;
         while (loop && loopCnt < bot.getConfiguration().getMaxLoops()) {
             String loopResult = condition(node, ps);
-            if (loopResult.trim().equals(MagicStrings.too_much_recursion)) {
-                return MagicStrings.too_much_recursion;
+            String tooMuch = bot.getConfiguration().getLanguage().getTooMuchRecursion();
+            if (loopResult.trim().equals(tooMuch)) {
+                return tooMuch;
             }
             if (loopResult.contains("<loop/>")) {
                 loopResult = loopResult.replace("<loop/>", "");
@@ -1148,7 +1148,9 @@ public class AIMLProcessor {
             }
             result.append(loopResult);
         }
-        return loopCnt >= bot.getConfiguration().getMaxLoops() ? MagicStrings.too_much_looping : result.toString();
+        return loopCnt >= bot.getConfiguration().getMaxLoops()
+                ? bot.getConfiguration().getLanguage().getTooMuchLooping()
+                : result.toString();
     }
 
     /**
@@ -1356,7 +1358,7 @@ public class AIMLProcessor {
     }
 
     public String javascript(Node node, ParseState ps) {
-        String result = MagicStrings.bad_javascript;
+        String result = Constants.bad_javascript;
         String script = evalTagContent(node, ps, null);
         try {
             result = IOUtils.evalScript("JavaScript", script);
@@ -1377,7 +1379,7 @@ public class AIMLProcessor {
         } else if (content.length() > 0) {
             return content;
         }
-        return MagicStrings.default_list_item;
+        return Constants.default_list_item;
     }
 
     private static String restWords(String sentence) {
@@ -1386,7 +1388,7 @@ public class AIMLProcessor {
         if (content.contains(" ")) {
             return content.substring(content.indexOf(" ") + 1, content.length());
         }
-        return MagicStrings.default_list_item;
+        return Constants.default_list_item;
     }
 
     public String first(Node node, ParseState ps) {
@@ -1549,7 +1551,7 @@ public class AIMLProcessor {
         } catch (Exception e) {
             log.error("Error: ", e);
         }
-        return MagicStrings.template_failed;
+        return bot.getConfiguration().getLanguage().getTemplateFailed();
     }
 
     /**

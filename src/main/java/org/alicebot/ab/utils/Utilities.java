@@ -20,8 +20,7 @@
 package org.alicebot.ab.utils;
 
 import org.alicebot.ab.Bot;
-import org.alicebot.ab.configuration.MagicStrings;
-import org.apache.commons.lang3.StringUtils;
+import org.alicebot.ab.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +72,7 @@ public class Utilities {
         StringBuilder contents = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             while ((strLine = reader.readLine()) != null) {
-                if (!strLine.startsWith(MagicStrings.text_comment_mark)) {
+                if (!strLine.startsWith(Constants.text_comment_mark)) {
                     if (strLine.length() != 0) {
                         contents.append(strLine);
                     }
@@ -142,16 +141,6 @@ public class Utilities {
             log.error("Error: ", e);
         }
         return copyright;
-    }
-
-    public static String getPannousAPIKey(Bot bot) {
-        String apiKey = getFile(bot.getConfigPath() + "/pannous-apikey.txt");
-        return StringUtils.isEmpty(apiKey) ? MagicStrings.pannous_api_key : apiKey;
-    }
-
-    public static String getPannousLogin(Bot bot) {
-        String login = getFile(bot.getConfigPath() + "/pannous-login.txt");
-        return StringUtils.isEmpty(login) ? MagicStrings.pannous_login : login;
     }
 
     /**
