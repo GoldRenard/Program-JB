@@ -52,7 +52,7 @@ public class Properties extends HashMap<String, String> {
     public int getPropertiesFromInputStream(InputStream in) {
         int cnt = 0;
         String strLine;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF8"))) {
             while ((strLine = br.readLine()) != null) {
                 if (strLine.contains(":")) {
                     String property = strLine.substring(0, strLine.indexOf(":"));

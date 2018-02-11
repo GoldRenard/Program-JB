@@ -26,6 +26,8 @@ public class BotConfiguration {
     @Builder.Default
     private boolean enableExternalMaps = true;
     @Builder.Default
+    private boolean enableSystemTag = false;
+    @Builder.Default
     private boolean jpTokenize = false;
     @Builder.Default
     private boolean fixExcelCsv = true;

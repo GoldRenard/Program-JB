@@ -82,15 +82,14 @@ public class Chat {
         History<String> contextThatHistory = new History<>(maxHistory);
         contextThatHistory.add(Constants.default_that);
         this.thatHistory.add(contextThatHistory);
-        addPredicates();
-        addTriples();
         this.predicates = new Predicates(bot);
         this.predicates.put("topic", Constants.default_topic);
         this.predicates.put("jsenabled", Constants.js_enabled);
-
         if (log.isTraceEnabled()) {
             log.trace("Chat Session Created for bot {}", bot.getName());
         }
+        addPredicates();
+        addTriples();
     }
 
     /**

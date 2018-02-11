@@ -857,6 +857,9 @@ public class AIMLProcessor {
      * @return the result of executing the system command or a string indicating the command failed.
      */
     private String system(Node node, ParseState ps) {
+        if (!bot.getConfiguration().isEnableSystemTag()) {
+            return "";
+        }
         Set<String> attributeNames = Utilities.stringSet("timeout");
         String evaluatedContents = evalTagContent(node, ps, attributeNames);
         return IOUtils.system(evaluatedContents, bot.getConfiguration().getLanguage().getSystemFailed());
