@@ -19,7 +19,6 @@
 */
 package org.alicebot.ab;
 
-import org.alicebot.ab.configuration.MagicBooleans;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.CalendarUtils;
 import org.alicebot.ab.utils.NetworkUtils;
@@ -39,19 +38,19 @@ public class Sraix {
 
     private final static Map<String, String> custIdMap = new ConcurrentHashMap<>();
 
-    public static String sraix(Chat chatSession, String input, String defaultResponse, String hint, String host, String botid, String apiKey, String limit) {
+    public static String sraix(Chat chatSession, Bot bot, String input, String defaultResponse, String hint, String host, String botid, String apiKey, String limit) {
         String response;
-        if (!MagicBooleans.enable_network_connection) {
+        if (!bot.getConfiguration().isEnableNetworkConnection()) {
             response = MagicStrings.sraix_failed;
         } else if (host != null && botid != null) {
-            response = sraixPandorabots(input, chatSession, host, botid);
+            response = sraixPandorabots(input, host, botid);
         } else {
             response = sraixPannous(input, hint, chatSession);
         }
         log.debug("Sraix: response = {} defaultResponse = {}", response, defaultResponse);
         if (response.equals(MagicStrings.sraix_failed)) {
             if (chatSession != null && defaultResponse == null) {
-                response = chatSession.getBot().getProcessor().respond(MagicStrings.sraix_failed, "nothing",
+                response = bot.getProcessor().respond(MagicStrings.sraix_failed, "nothing",
                         "nothing", chatSession);
             } else if (defaultResponse != null) {
                 response = defaultResponse;
@@ -60,12 +59,12 @@ public class Sraix {
         return response;
     }
 
-    public static String sraixPandorabots(String input, Chat chatSession, String host, String botid) {
+    public static String sraixPandorabots(String input, String host, String botid) {
         String responseContent = pandorabotsRequest(input, host, botid);
         if (responseContent == null) {
             return MagicStrings.sraix_failed;
         }
-        return pandorabotsResponse(responseContent, chatSession, host, botid);
+        return pandorabotsResponse(responseContent, host, botid);
     }
 
     public static String pandorabotsRequest(String input, String host, String botid) {
@@ -87,7 +86,7 @@ public class Sraix {
         return null;
     }
 
-    public static String pandorabotsResponse(String sraixResponse, Chat chatSession, String host, String botid) {
+    public static String pandorabotsResponse(String sraixResponse, String host, String botid) {
         String botResponse = MagicStrings.sraix_failed;
         try {
             int n1 = sraixResponse.indexOf("<that>");

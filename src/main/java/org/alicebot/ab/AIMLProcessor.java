@@ -19,8 +19,7 @@
 */
 package org.alicebot.ab;
 
-import org.alicebot.ab.configuration.MagicBooleans;
-import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.*;
@@ -54,6 +53,12 @@ public class AIMLProcessor {
 
     private Map<String, Tuple> tupleMap = new ConcurrentHashMap<>();
 
+    private final Bot bot;
+
+    public AIMLProcessor(Bot bot) {
+        this.bot = bot;
+    }
+
     /**
      * when parsing an AIML file, process a category element.
      *
@@ -62,7 +67,7 @@ public class AIMLProcessor {
      * @param topic                           value of topic in case this category is wrapped in a <topic> tag
      * @param aimlFile                        name of AIML file being parsed.
      */
-    private static void categoryProcessor(Node n, ArrayList<Category> categories, String topic, String aimlFile, String language) {
+    private void categoryProcessor(Node n, ArrayList<Category> categories, String topic, String aimlFile, String language) {
         String pattern, that, template;
 
         NodeList children = n.getChildNodes();
@@ -107,12 +112,12 @@ public class AIMLProcessor {
         topic = cleanPattern(topic);
 
         template = trimTag(template, "template");
-        if (MagicBooleans.jp_tokenize) {
+        if (bot.getConfiguration().isJpTokenize()) {
             pattern = JapaneseUtils.tokenizeSentence(pattern);
             that = JapaneseUtils.tokenizeSentence(that);
             topic = JapaneseUtils.tokenizeSentence(topic);
         }
-        Category c = new Category(0, pattern, that, topic, template, aimlFile);
+        Category c = new Category(bot, 0, pattern, that, topic, template, aimlFile);
         if (StringUtils.isEmpty(template)) {
             log.info("Category {} discarded due to blank or missing <template>.", c.inputThatTopic());
         } else {
@@ -143,7 +148,7 @@ public class AIMLProcessor {
      * @param aimlFile  AIML file name.
      * @return list of categories.
      */
-    public static ArrayList<Category> AIMLToCategories(String directory, String aimlFile) {
+    public ArrayList<Category> AIMLToCategories(String directory, String aimlFile) {
         try {
             ArrayList<Category> categories = new ArrayList<>();
             Node root = DomUtils.parseFile(directory + "/" + aimlFile);      // <aiml> tag
@@ -389,7 +394,8 @@ public class AIMLProcessor {
             log.trace("AIMLProcessor.srai(node: {}, ps: {}", node, ps);
         }
         sraiCount++;
-        if (sraiCount > MagicNumbers.max_recursion_count || ps.getDepth() > MagicNumbers.max_recursion_depth) {
+        if (sraiCount > bot.getConfiguration().getMaxRecursionCount()
+                || ps.getDepth() > bot.getConfiguration().getMaxRecursionDepth()) {
             return MagicStrings.too_much_recursion;
         }
         String response = MagicStrings.default_bot_response;
@@ -398,7 +404,9 @@ public class AIMLProcessor {
             result = result.trim();
             result = result.replaceAll("(\r\n|\n\r|\r|\n)", " ");
             result = ps.getChatSession().getBot().getPreProcessor().normalize(result);
-            result = JapaneseUtils.tokenizeSentence(result);
+            if (bot.getConfiguration().isJpTokenize()) {
+                result = JapaneseUtils.tokenizeSentence(result);
+            }
             String topic = ps.getChatSession().getPredicates().get("topic");     // the that stays the same, but the topic may have changed
             if (log.isTraceEnabled()) {
                 log.trace("<srai>{}</srai> from {} topic={}", result, ps.getLeaf().getCategory().inputThatTopic(), topic);
@@ -479,7 +487,8 @@ public class AIMLProcessor {
         String limit = getAttributeOrTagValue(node, ps, "limit");
         String defaultResponse = getAttributeOrTagValue(node, ps, "default");
         String evalResult = evalTagContent(node, ps, attributeNames);
-        return Sraix.sraix(ps.getChatSession(), evalResult, defaultResponse, hint, host, botid, null, limit);
+        return Sraix.sraix(ps.getChatSession(), ps.getChatSession().getBot(),
+                evalResult, defaultResponse, hint, host, botid, null, limit);
     }
 
     /**
@@ -1033,7 +1042,9 @@ public class AIMLProcessor {
             if (childList.item(i).getNodeName().equals("li")) liList.add(childList.item(i));
         }
         int index = (int) (Math.random() * liList.size());
-        if (MagicBooleans.qa_test_mode) index = 0;
+        if (ps.getChatSession() != null && ps.getChatSession().getBot().getConfiguration().isQaTestMode()) {
+            index = 0;
+        }
         return evalTagContent(liList.get(index), ps, null);
     }
 
@@ -1100,10 +1111,10 @@ public class AIMLProcessor {
                 }
                 Category c;
                 if (node.getNodeName().equals("learn")) {
-                    c = new Category(0, pattern, that, "*", template, MagicStrings.null_aiml_file);
+                    c = new Category(bot, 0, pattern, that, "*", template, Constants.nullAimlFile);
                     ps.getChatSession().getBot().getLearnGraph().addCategory(c);
                 } else {// learnf
-                    c = new Category(0, pattern, that, "*", template, MagicStrings.learnf_aiml_file);
+                    c = new Category(bot, 0, pattern, that, "*", template, Constants.learnfAimlFile);
                     ps.getChatSession().getBot().getLearnfGraph().addCategory(c);
                 }
                 ps.getChatSession().getBot().getBrain().addCategory(c);
@@ -1124,7 +1135,7 @@ public class AIMLProcessor {
         boolean loop = true;
         StringBuilder result = new StringBuilder();
         int loopCnt = 0;
-        while (loop && loopCnt < MagicNumbers.max_loops) {
+        while (loop && loopCnt < bot.getConfiguration().getMaxLoops()) {
             String loopResult = condition(node, ps);
             if (loopResult.trim().equals(MagicStrings.too_much_recursion)) {
                 return MagicStrings.too_much_recursion;
@@ -1137,7 +1148,7 @@ public class AIMLProcessor {
             }
             result.append(loopResult);
         }
-        return loopCnt >= MagicNumbers.max_loops ? MagicStrings.too_much_looping : result.toString();
+        return loopCnt >= bot.getConfiguration().getMaxLoops() ? MagicStrings.too_much_looping : result.toString();
     }
 
     /**

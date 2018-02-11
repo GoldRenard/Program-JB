@@ -21,7 +21,6 @@ package org.alicebot.ab.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicNumbers;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,7 @@ import java.util.Map;
 public class Nodemapper {
 
     private Category category = null;
-    private int height = MagicNumbers.max_graph_height;
+    private int height;
     private StarBindings starBindings = null;
     private Map<String, Nodemapper> map = null;
     private String key = null;
@@ -43,6 +42,9 @@ public class Nodemapper {
     private boolean shortCut = false;
     private List<String> sets;
 
+    public Nodemapper(int height) {
+        this.height = height;
+    }
 }
 
 

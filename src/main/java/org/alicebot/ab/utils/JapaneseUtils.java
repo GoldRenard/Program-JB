@@ -2,7 +2,6 @@ package org.alicebot.ab.utils;
 
 import net.reduls.sanmoku.Tagger;
 import org.alicebot.ab.AIMLProcessor;
-import org.alicebot.ab.configuration.MagicBooleans;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,6 @@ public class JapaneseUtils {
         if (log.isDebugEnabled()) {
             log.debug("tokenizeSentence: {}", sentence);
         }
-        if (!MagicBooleans.jp_tokenize) return sentence;
         String result = "";
         result = tokenizeXML(sentence);
         while (result.contains("$ ")) result = result.replace("$ ", "$");

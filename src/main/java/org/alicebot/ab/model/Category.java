@@ -23,7 +23,7 @@ import lombok.Setter;
 import org.alicebot.ab.AIMLProcessor;
 import org.alicebot.ab.Bot;
 import org.alicebot.ab.Graphmaster;
-import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.Utilities;
 import org.slf4j.Logger;
@@ -107,7 +107,7 @@ public class Category {
      * @return file name
      */
     public String getFilename() {
-        return filename == null ? MagicStrings.unknown_aiml_file : filename;
+        return filename == null ? Constants.unknownAimlFile : filename;
     }
 
     /**
@@ -173,9 +173,9 @@ public class Category {
      * @param IF Category in AIMLIF format
      * @return Category object
      */
-    public static Category IFToCategory(String IF) {
+    public static Category IFToCategory(Bot bot, String IF) {
         String[] split = IF.split(MagicStrings.aimlif_split_char);
-        return new Category(Integer.parseInt(split[0]), split[1], split[2], split[3], lineToTemplate(split[4]), split[5]);
+        return new Category(bot, Integer.parseInt(split[0]), split[1], split[2], split[3], lineToTemplate(split[4]), split[5]);
     }
 
     /**
@@ -295,8 +295,8 @@ public class Category {
      * @param filename      AIML file name
      */
 
-    public Category(int activationCnt, String pattern, String that, String topic, String template, String filename) {
-        if (MagicBooleans.fix_excel_csv) {
+    public Category(Bot bot, int activationCnt, String pattern, String that, String topic, String template, String filename) {
+        if (bot != null && bot.getConfiguration().isFixExcelCsv()) {
             pattern = Utilities.fixCSV(pattern);
             that = Utilities.fixCSV(that);
             topic = Utilities.fixCSV(topic);
@@ -321,8 +321,8 @@ public class Category {
      * @param template         AIML template
      * @param filename         AIML category
      */
-    public Category(int activationCnt, String patternThatTopic, String template, String filename) {
-        this(activationCnt,
+    public Category(Bot bot, int activationCnt, String patternThatTopic, String template, String filename) {
+        this(bot, activationCnt,
                 patternThatTopic.substring(0, patternThatTopic.indexOf("<THAT>")),
                 patternThatTopic.substring(patternThatTopic.indexOf("<THAT>") + "<THAT>".length(), patternThatTopic.indexOf("<TOPIC>")),
                 patternThatTopic.substring(patternThatTopic.indexOf("<TOPIC>") + "<TOPIC>".length(), patternThatTopic.length()), template, filename);

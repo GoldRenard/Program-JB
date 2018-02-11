@@ -19,7 +19,6 @@
 */
 package org.alicebot.ab;
 
-import org.alicebot.ab.configuration.MagicNumbers;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,21 +34,22 @@ public class PreProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(PreProcessor.class);
 
+    private final Bot bot;
     private int normalCount = 0;
     private int denormalCount = 0;
     private int personCount = 0;
     private int person2Count = 0;
     private int genderCount = 0;
-    private String[] normalSubs = new String[MagicNumbers.max_substitutions];
-    private Pattern[] normalPatterns = new Pattern[MagicNumbers.max_substitutions];
-    private String[] denormalSubs = new String[MagicNumbers.max_substitutions];
-    private Pattern[] denormalPatterns = new Pattern[MagicNumbers.max_substitutions];
-    private String[] personSubs = new String[MagicNumbers.max_substitutions];
-    private Pattern[] personPatterns = new Pattern[MagicNumbers.max_substitutions];
-    private String[] person2Subs = new String[MagicNumbers.max_substitutions];
-    private Pattern[] person2Patterns = new Pattern[MagicNumbers.max_substitutions];
-    private String[] genderSubs = new String[MagicNumbers.max_substitutions];
-    private Pattern[] genderPatterns = new Pattern[MagicNumbers.max_substitutions];
+    private String[] normalSubs;
+    private Pattern[] normalPatterns;
+    private String[] denormalSubs;
+    private Pattern[] denormalPatterns;
+    private String[] personSubs;
+    private Pattern[] personPatterns;
+    private String[] person2Subs;
+    private Pattern[] person2Patterns;
+    private String[] genderSubs;
+    private Pattern[] genderPatterns;
 
     /**
      * Constructor given bot
@@ -57,6 +57,18 @@ public class PreProcessor {
      * @param bot AIML bot
      */
     public PreProcessor(Bot bot) {
+        this.bot = bot;
+        int maxSubstitutions = bot.getConfiguration().getMaxSubstitutions();
+        normalSubs = new String[maxSubstitutions];
+        normalPatterns = new Pattern[maxSubstitutions];
+        denormalSubs = new String[maxSubstitutions];
+        denormalPatterns = new Pattern[maxSubstitutions];
+        personSubs = new String[maxSubstitutions];
+        personPatterns = new Pattern[maxSubstitutions];
+        person2Subs = new String[maxSubstitutions];
+        person2Patterns = new Pattern[maxSubstitutions];
+        genderSubs = new String[maxSubstitutions];
+        genderPatterns = new Pattern[maxSubstitutions];
         normalCount = readSubstitutions(bot.getConfigPath() + "/normal.txt", normalPatterns, normalSubs);
         denormalCount = readSubstitutions(bot.getConfigPath() + "/denormal.txt", denormalPatterns, denormalSubs);
         personCount = readSubstitutions(bot.getConfigPath() + "/person.txt", personPatterns, personSubs);
@@ -176,14 +188,13 @@ public class PreProcessor {
                 if (!strLine.startsWith(MagicStrings.text_comment_mark)) {
                     Pattern pattern = Pattern.compile("\"(.*?)\",\"(.*?)\"", Pattern.DOTALL);
                     Matcher matcher = pattern.matcher(strLine);
-                    if (matcher.find() && subCount < MagicNumbers.max_substitutions) {
+                    if (matcher.find() && subCount < bot.getConfiguration().getMaxSubstitutions()) {
                         subs[subCount] = matcher.group(2);
                         String quotedPattern = Pattern.quote(matcher.group(1));
                         patterns[subCount] = Pattern.compile(quotedPattern, Pattern.CASE_INSENSITIVE);
                         subCount++;
                     }
                 }
-
             }
         } catch (Exception e) {
             log.error("Error:", e);

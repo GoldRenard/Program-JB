@@ -20,10 +20,8 @@
 package org.alicebot.ab.etc;
 
 import org.alicebot.ab.*;
-import org.alicebot.ab.configuration.MagicBooleans;
-import org.alicebot.ab.configuration.MagicNumbers;
+import org.alicebot.ab.configuration.BotConfiguration;
 import org.alicebot.ab.configuration.MagicStrings;
-import org.alicebot.ab.i18n.Verbs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +30,13 @@ public class App {
     private static final Logger log = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
-        MagicStrings.setRootPath();
-        String botName = "alice2";
-        MagicBooleans.jp_tokenize = false;
-        String action = "chat";
+
+        BotConfiguration.BotConfigurationBuilder builder = BotConfiguration
+                .builder()
+                .name("alice2")
+                .action("chat")
+                .jpTokenize(false)
+                .graphShortCuts(true);
 
         log.info(MagicStrings.program_name_version);
         for (String s : args) {
@@ -43,30 +44,29 @@ public class App {
             if (splitArg.length >= 2) {
                 String option = splitArg[0];
                 String value = splitArg[1];
-                if (option.equals("bot")) botName = value;
-                if (option.equals("action")) action = value;
+                if (option.equals("bot")) {
+                    builder.name(value);
+                }
+                if (option.equals("action")) {
+                    builder.action(value);
+                }
                 if (option.equals("morph")) {
-                    MagicBooleans.jp_tokenize = value.equals("true");
+                    builder.jpTokenize(value.equals("true"));
                 }
             }
         }
-        log.debug("Working Directory = " + MagicStrings.root_path);
-        MagicBooleans.graph_enableShortCuts = true;
-        Bot bot = new Bot(botName, MagicStrings.root_path, action);
+        BotConfiguration configuration = builder.build();
+        Bot bot = new Bot(configuration);
 
-        if (MagicBooleans.make_verbs_sets_maps) {
-            Verbs.makeVerbSetsMaps(bot);
-        }
-
-        if (bot.getBrain().getCategories().size() < MagicNumbers.brain_print_size) {
+        if (bot.getBrain().getCategories().size() < AB.brain_print_size) {
             bot.getBrain().printGraph();
         }
-        log.debug("Action = '{}'", action);
+        log.debug("Action = '{}'", configuration.getAction());
 
-        switch (action) {
+        switch (configuration.getAction()) {
             case "chat":
             case "chat-app":
-                boolean doWrites = !action.equals("chat-app");
+                boolean doWrites = !configuration.getAction().equals("chat-app");
                 TestAB.testChat(bot, doWrites);
                 break;
             case "ab":
@@ -89,7 +89,7 @@ public class App {
                 bot.shadowChecker();
                 break;
             default:
-                log.error("Unrecognized action {}", action);
+                log.error("Unrecognized action {}", configuration.getAction());
                 break;
         }
     }

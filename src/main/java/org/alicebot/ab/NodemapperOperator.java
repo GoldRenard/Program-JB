@@ -143,8 +143,7 @@ public class NodemapperOperator {
      * @param node Nodemapper object
      */
     public static void upgrade(Nodemapper node) {
-        //node.type = MagicNumbers.hash_node_mapper;
-        node.setMap(new HashMap<String, Nodemapper>());
+        node.setMap(new HashMap<>());
         node.getMap().put(node.getKey(), node.getValue());
         node.setKey(null);
         node.setValue(null);

@@ -20,7 +20,6 @@
 package org.alicebot.ab.model;
 
 import org.alicebot.ab.*;
-import org.alicebot.ab.configuration.MagicBooleans;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.i18n.Inflector;
 import org.slf4j.Logger;
@@ -82,10 +81,10 @@ public class AIMLMap extends HashMap<String, String> {
             return Inflector.getInstance().singularize(key).toLowerCase();
         } else if (mapName.equals("plural")) {
             return Inflector.getInstance().pluralize(key).toLowerCase();
-        } else if (isExternal && MagicBooleans.enable_external_sets) {
+        } else if (isExternal && bot.getConfiguration().isEnableExternalMaps()) {
             //String[] split = key.split(" ");
             String query = mapName.toUpperCase() + " " + key;
-            String response = Sraix.sraix(null, query, MagicStrings.default_map, null, host, botId, null, "0");
+            String response = Sraix.sraix(null, bot, query, MagicStrings.default_map, null, host, botId, null, "0");
             log.info("External {}({})={}" + response, mapName, key, response);
             value = response;
         } else {

@@ -21,8 +21,6 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicBooleans;
-import org.alicebot.ab.configuration.MagicNumbers;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.Utilities;
@@ -73,7 +71,7 @@ public class Graphmaster {
     }
 
     public Graphmaster(Bot bot, String name) {
-        this.root = new Nodemapper();
+        this.root = new Nodemapper(bot.getConfiguration().getMaxGraphHeight());
         this.bot = bot;
         this.name = name;
         this.vocabulary = new HashSet<>();
@@ -158,7 +156,7 @@ public class Graphmaster {
         if (path == null) {
             node.setCategory(category);
             node.setHeight(0);
-        } else if (MagicBooleans.graph_enableShortCuts && thatStarTopicStar(path)) {
+        } else if (bot.getConfiguration().isGraphShortCuts() && thatStarTopicStar(path)) {
             node.setCategory(category);
             node.setHeight(Math.min(4, node.getHeight()));
             node.setShortCut(true);
@@ -174,7 +172,7 @@ public class Graphmaster {
             }
             node.setHeight(Math.min(offset + (nextNode != null ? nextNode.getHeight() : 0), node.getHeight()));
         } else {
-            Nodemapper nextNode = new Nodemapper();
+            Nodemapper nextNode = new Nodemapper(bot.getConfiguration().getMaxGraphHeight());
             if (path.getWord().startsWith("<SET>")) {
                 addSets(path.getWord(), bot, node, category.getFilename());
             }
@@ -295,21 +293,22 @@ public class Graphmaster {
      */
     private Nodemapper match(Path path, String inputThatTopic) {
         try {
-            String[] inputStars = new String[MagicNumbers.max_stars];
-            String[] thatStars = new String[MagicNumbers.max_stars];
-            String[] topicStars = new String[MagicNumbers.max_stars];
+            int maxStars = bot.getConfiguration().getMaxStars();
+            String[] inputStars = new String[maxStars];
+            String[] thatStars = new String[maxStars];
+            String[] topicStars = new String[maxStars];
             String starState = "inputStar";
             String matchTrace = "";
             Nodemapper n = match(path, root, inputThatTopic, starState, 0, inputStars, thatStars, topicStars, matchTrace);
             if (n != null) {
                 StarBindings sb = new StarBindings();
-                for (int i = 0; inputStars[i] != null && i < MagicNumbers.max_stars; i++) {
+                for (int i = 0; inputStars[i] != null && i < maxStars; i++) {
                     sb.getInputStars().add(inputStars[i]);
                 }
-                for (int i = 0; thatStars[i] != null && i < MagicNumbers.max_stars; i++) {
+                for (int i = 0; thatStars[i] != null && i < maxStars; i++) {
                     sb.getThatStars().add(thatStars[i]);
                 }
-                for (int i = 0; topicStars[i] != null && i < MagicNumbers.max_stars; i++) {
+                for (int i = 0; topicStars[i] != null && i < maxStars; i++) {
                     sb.getTopicStars().add(topicStars[i]);
                 }
                 n.setStarBindings(sb);
@@ -617,7 +616,7 @@ public class Graphmaster {
     }
 
     private void setStars(String starWords, int starIndex, String starState, String[] inputStars, String[] thatStars, String[] topicStars) {
-        if (starIndex < MagicNumbers.max_stars) {
+        if (starIndex < bot.getConfiguration().getMaxStars()) {
             starWords = starWords.trim();
             switch (starState) {
                 case "inputStar":

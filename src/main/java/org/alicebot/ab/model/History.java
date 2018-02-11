@@ -20,7 +20,6 @@
 package org.alicebot.ab.model;
 
 import lombok.Getter;
-import org.alicebot.ab.configuration.MagicNumbers;
 import org.alicebot.ab.configuration.MagicStrings;
 
 /**
@@ -36,8 +35,8 @@ public class History<T> {
     /**
      * Constructor with default history name
      */
-    public History() {
-        this("unknown");
+    public History(int maxHistory) {
+        this(maxHistory, "unknown");
     }
 
     /**
@@ -45,9 +44,9 @@ public class History<T> {
      *
      * @param name name of history
      */
-    public History(String name) {
+    public History(int maxHistory, String name) {
         this.name = name;
-        history = new Object[MagicNumbers.max_history];
+        this.history = new Object[maxHistory];
     }
 
     /**
@@ -56,7 +55,7 @@ public class History<T> {
      * @param item history item to add
      */
     public void add(T item) {
-        for (int i = MagicNumbers.max_history - 1; i > 0; i--) {
+        for (int i = history.length - 1; i > 0; i--) {
             history[i] = history[i - 1];
         }
         history[0] = item;
@@ -70,10 +69,10 @@ public class History<T> {
      */
     @SuppressWarnings("unchecked")
     public T get(int index) {
-        if (index < MagicNumbers.max_history) {
-            if (history[index] == null) return null;
-            else return (T) history[index];
-        } else return null;
+        if (index < history.length) {
+            return (T) history[index];
+        }
+        return null;
     }
 
     /**
@@ -83,7 +82,7 @@ public class History<T> {
      * @return history item
      */
     public String getString(int index) {
-        if (index < MagicNumbers.max_history) {
+        if (index < history.length) {
             if (history[index] == null) {
                 return MagicStrings.unknown_history_item;
             }

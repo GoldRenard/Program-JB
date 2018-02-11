@@ -19,7 +19,7 @@
 */
 package org.alicebot.ab.model;
 
-import org.alicebot.ab.configuration.MagicBooleans;
+import org.alicebot.ab.Bot;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.JapaneseUtils;
 import org.slf4j.Logger;
@@ -35,6 +35,12 @@ public class Predicates extends HashMap<String, String> {
 
     private static final Logger log = LoggerFactory.getLogger(Predicates.class);
 
+    private final Bot bot;
+
+    public Predicates(Bot bot) {
+        this.bot = bot;
+    }
+
     /**
      * save a predicate value
      *
@@ -43,7 +49,7 @@ public class Predicates extends HashMap<String, String> {
      * @return predicate value
      */
     public String put(String key, String value) {
-        if (MagicBooleans.jp_tokenize) {
+        if (bot.getConfiguration().isJpTokenize()) {
             if (key.equals("topic")) {
                 value = JapaneseUtils.tokenizeSentence(value);
             }

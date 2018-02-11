@@ -21,8 +21,6 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.alicebot.ab.configuration.MagicBooleans;
-import org.alicebot.ab.configuration.MagicNumbers;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.History;
 import org.alicebot.ab.model.Predicates;
@@ -46,11 +44,11 @@ public class Chat {
     private final TripleStore tripleStore;
     private boolean doWrites;
     private String customerId = MagicStrings.default_Customer_id;
-    private History<History> thatHistory = new History<>("that");
-    private History<String> requestHistory = new History<>("request");
-    private History<String> responseHistory = new History<>("response");
-    private History<String> inputHistory = new History<>("input");
-    private Predicates predicates = new Predicates();
+    private History<History> thatHistory;
+    private History<String> requestHistory;
+    private History<String> responseHistory;
+    private History<String> inputHistory;
+    private Predicates predicates;
 
     /**
      * Constructor  (defualt customer ID)
@@ -76,11 +74,17 @@ public class Chat {
         this.bot = bot;
         this.tripleStore = new TripleStore("anon", bot);
         this.doWrites = doWrites;
-        History<String> contextThatHistory = new History<>();
+        int maxHistory = bot.getConfiguration().getMaxHistory();
+        thatHistory = new History<>(maxHistory, "that");
+        requestHistory = new History<>(maxHistory, "request");
+        responseHistory = new History<>(maxHistory, "response");
+        inputHistory = new History<>(maxHistory, "input");
+        History<String> contextThatHistory = new History<>(maxHistory);
         contextThatHistory.add(MagicStrings.default_that);
         this.thatHistory.add(contextThatHistory);
         addPredicates();
         addTriples();
+        this.predicates = new Predicates(bot);
         this.predicates.put("topic", MagicStrings.default_topic);
         this.predicates.put("jsenabled", MagicStrings.js_enabled);
 
@@ -165,7 +169,7 @@ public class Chat {
      */
     private String respond(String input, String that, String topic, History<String> contextThatHistory) {
         boolean repetition = true;
-        for (int i = 0; i < MagicNumbers.repetition_count; i++) {
+        for (int i = 0; i < bot.getConfiguration().getRepetitionCount(); i++) {
             if (inputHistory.get(i) == null || !input.toUpperCase().equals(inputHistory.get(i).toUpperCase())) {
                 repetition = false;
             }
@@ -182,7 +186,7 @@ public class Chat {
 
         response = bot.getProcessor().respond(input, that, topic, this);
         String normResponse = bot.getPreProcessor().normalize(response);
-        if (MagicBooleans.jp_tokenize) {
+        if (bot.getConfiguration().isJpTokenize()) {
             normResponse = JapaneseUtils.tokenizeSentence(normResponse);
         }
         String sentences[] = bot.getPreProcessor().sentenceSplit(normResponse);
@@ -218,11 +222,11 @@ public class Chat {
         StringBuilder response = new StringBuilder();
         try {
             String normalized = bot.getPreProcessor().normalize(request);
-            if (MagicBooleans.jp_tokenize) {
+            if (bot.getConfiguration().isJpTokenize()) {
                 normalized = JapaneseUtils.tokenizeSentence(normalized);
             }
             String sentences[] = bot.getPreProcessor().sentenceSplit(normalized);
-            History<String> contextThatHistory = new History<>("contextThat");
+            History<String> contextThatHistory = new History<>(bot.getConfiguration().getMaxHistory(), "contextThat");
             for (String sentence : sentences) {
                 String reply = respond(sentence, contextThatHistory);
                 response.append(" ").append(reply);

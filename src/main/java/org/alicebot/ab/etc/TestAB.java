@@ -2,7 +2,6 @@ package org.alicebot.ab.etc;
 
 import org.alicebot.ab.Bot;
 import org.alicebot.ab.Chat;
-import org.alicebot.ab.configuration.MagicBooleans;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.utils.IOUtils;
 import org.slf4j.Logger;
@@ -56,13 +55,13 @@ public class TestAB {
     }
 
     public static void runTests(Bot bot) {
-        MagicBooleans.qa_test_mode = true;
+        bot.getConfiguration().setQaTestMode(true);
         Chat chatSession = new Chat(bot, false);
         //        bot.preProcessor.normalizeFile("c:/ab/bots/super/aiml/thats.txt", "c:/ab/bots/super/aiml/normalthats.txt");
         bot.getBrain().nodeStats();
-        IOUtils testInput = new IOUtils(MagicStrings.root_path + "/data/lognormal-500.txt", "read");
+        IOUtils testInput = new IOUtils(bot.getRootPath() + "/data/lognormal-500.txt", "read");
         //IOUtils testInput = new IOUtils(MagicStrings.root_path + "/data/callmom-inputs.txt", "read");
-        IOUtils testOutput = new IOUtils(MagicStrings.root_path + "/data/lognormal-500-out.txt", "write");
+        IOUtils testOutput = new IOUtils(bot.getRootPath() + "/data/lognormal-500-out.txt", "write");
         //IOUtils testOutput = new IOUtils(MagicStrings.root_path + "/data/callmom-outputs.txt", "write");
         String textLine = testInput.readLine();
         while (textLine != null) {

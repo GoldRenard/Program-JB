@@ -25,13 +25,10 @@ package org.alicebot.ab.configuration;
 public class MagicStrings {
     // General global strings
     public static String program_name_version = "Program AB 0.0.6.26 beta -- AI Foundation Reference AIML 2.1 implementation";
-    public static String comment = "Added repetition detection.";
     public static String aimlif_split_char = ",";
-    public static String default_bot = "alice2";
     public static String default_language = "EN";
     public static String aimlif_split_char_name = "\\#Comma";
     public static String aimlif_file_suffix = ".csv";
-    public static String ab_sample_file = "sample.txt";
     public static String text_comment_mark = ";;";
     // <sraix> defaults
     public static String pannous_api_key = "guest";
@@ -42,21 +39,7 @@ public class MagicStrings {
     public static String sraix_event_hint = "event";
     public static String sraix_pic_hint = "pic";
     public static String sraix_shopping_hint = "shopping";
-    // AIML files
-    public static String unknown_aiml_file = "unknown_aiml_file.aiml";
-    public static String deleted_aiml_file = "deleted.aiml";
-    public static String learnf_aiml_file = "learnf.aiml";
-    public static String null_aiml_file = "null.aiml";
-    public static String inappropriate_aiml_file = "inappropriate.aiml";
-    public static String profanity_aiml_file = "profanity.aiml";
-    public static String insult_aiml_file = "insults.aiml";
-    public static String reductions_update_aiml_file = "reductions_update.aiml";
-    public static String predicates_aiml_file = "client_profile.aiml";
-    public static String update_aiml_file = "update.aiml";
-    public static String personality_aiml_file = "personality.aiml";
-    public static String sraix_aiml_file = "sraix.aiml";
-    public static String oob_aiml_file = "oob.aiml";
-    public static String unfinished_aiml_file = "unfinished.aiml";
+
     // filter responses
     public static String inappropriate_filter = "FILTER INAPPROPRIATE";
     public static String profanity_filter = "FILTER PROFANITY";
@@ -97,16 +80,6 @@ public class MagicStrings {
     public static String map_predecessor = "predecessor";
     public static String map_singular = "singular";
     public static String map_plural = "plural";
-    // paths
-    public static String root_path = "/";
-
-    public static void setRootPath(String newRootPath) {
-        root_path = newRootPath;
-    }
-
-    public static void setRootPath() {
-        setRootPath(System.getProperty("user.dir"));
-    }
 
 }
 

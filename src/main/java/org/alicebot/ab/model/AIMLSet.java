@@ -21,7 +21,6 @@ package org.alicebot.ab.model;
 
 import lombok.Getter;
 import org.alicebot.ab.Bot;
-import org.alicebot.ab.configuration.MagicBooleans;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.Sraix;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public class AIMLSet extends HashSet<String> {
     }
 
     public boolean contains(String s) {
-        if (isExternal && MagicBooleans.enable_external_sets) {
+        if (isExternal && bot.getConfiguration().isEnableExternalSets()) {
             if (inCache.contains(s)) {
                 return true;
             }
@@ -79,7 +78,7 @@ public class AIMLSet extends HashSet<String> {
                 return false;
             }
             String query = MagicStrings.set_member_string + setName.toUpperCase() + " " + s;
-            String response = Sraix.sraix(null, query, "false", null, host, botId, null, "0");
+            String response = Sraix.sraix(null, bot, query, "false", null, host, botId, null, "0");
             if ("true".equals(response)) {
                 inCache.add(s);
                 return true;

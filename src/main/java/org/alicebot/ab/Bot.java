@@ -22,6 +22,8 @@ package org.alicebot.ab;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.alicebot.ab.configuration.BotConfiguration;
+import org.alicebot.ab.configuration.Constants;
 import org.alicebot.ab.configuration.MagicStrings;
 import org.alicebot.ab.model.*;
 import org.alicebot.ab.utils.IOUtils;
@@ -45,6 +47,8 @@ public class Bot {
 
     private static final Logger log = LoggerFactory.getLogger(Bot.class);
 
+    private final BotConfiguration configuration;
+
     private final Properties properties = new Properties();
 
     private final PreProcessor preProcessor;
@@ -65,35 +69,15 @@ public class Bot {
 
     private HashSet<String> pronounSet = new HashSet<>();
 
+    private String rootPath;
     private String aimlifPath;
     private String aimlPath;
     private String configPath;
     private String setsPath;
     private String mapsPath;
 
-    /**
-     * Set all directory path variables for this bot
-     *
-     * @param root root directory of Program AB
-     * @param name name of bot
-     */
-    private void setAllPaths(String root, String name) {
-        String botNamePath = root + "/bots/" + name;
-        if (log.isTraceEnabled()) {
-            log.trace("Init bot: Name = {} Path = {}", name, botNamePath);
-        }
-        aimlPath = botNamePath + "/aiml";
-        aimlifPath = botNamePath + "/aimlif";
-        configPath = botNamePath + "/config";
-        setsPath = botNamePath + "/sets";
-        mapsPath = botNamePath + "/maps";
-    }
-
-    /**
-     * Constructor (default action, default path, default bot name)
-     */
     public Bot() {
-        this(MagicStrings.default_bot, MagicStrings.root_path);
+        this(BotConfiguration.builder().build());
     }
 
     /**
@@ -102,37 +86,25 @@ public class Bot {
      * @param name Bot Name
      */
     public Bot(String name) {
-        this(name, MagicStrings.root_path);
-    }
-
-    /**
-     * Constructor (default action)
-     *
-     * @param name Bot Name
-     * @param path Base path of bot
-     */
-    public Bot(String name, String path) {
-        this(name, path, "auto");
+        this(BotConfiguration.builder().name(name).build());
     }
 
     /**
      * Constructor
      *
-     * @param name   name of bot
-     * @param path   root path of Program AB
-     * @param action Program AB action
+     * @param configuration configuration
      */
-    public Bot(String name, String path, String action) {
-        int count;
-        this.name = name;
-        setAllPaths(path, name);
+    public Bot(BotConfiguration configuration) {
+        this.configuration = configuration;
+        this.name = configuration.getName();
+        setAllPaths(configuration);
         this.brain = new Graphmaster(this);
         this.learnfGraph = new Graphmaster(this, "learnf");
         this.learnGraph = new Graphmaster(this, "learn");
         this.preProcessor = new PreProcessor(this);
-        this.processor = new AIMLProcessor();
+        this.processor = new AIMLProcessor(this);
         addProperties();
-        count = addAIMLSets();
+        int count = addAIMLSets();
         if (log.isDebugEnabled()) {
             log.debug("Loaded {} set elements.", count);
         }
@@ -155,7 +127,7 @@ public class Bot {
         MagicStrings.pannous_api_key = Utilities.getPannousAPIKey(this);
         MagicStrings.pannous_login = Utilities.getPannousLogin(this);
 
-        switch (action) {
+        switch (configuration.getAction()) {
             case "aiml2csv":
                 addCategoriesFromAIML();
                 break;
@@ -176,10 +148,28 @@ public class Bot {
                 break;
         }
 
-        Category version = new Category(0, "PROGRAM VERSION", "*", "*", MagicStrings.program_name_version, "update.aiml");
+        Category version = new Category(this, 0, "PROGRAM VERSION", "*", "*", MagicStrings.program_name_version, "update.aiml");
         brain.addCategory(version);
         brain.nodeStats();
         learnfGraph.nodeStats();
+    }
+
+    /**
+     * Set all directory path variables for this bot
+     *
+     * @param configuration configuration of Program AB
+     */
+    private void setAllPaths(BotConfiguration configuration) {
+        this.rootPath = configuration.getPath();
+        String botNamePath = this.rootPath + "/bots/" + name;
+        if (log.isTraceEnabled()) {
+            log.trace("Init bot: Name = {} Path = {}", name, botNamePath);
+        }
+        aimlPath = botNamePath + "/aiml";
+        aimlifPath = botNamePath + "/aimlif";
+        configPath = botNamePath + "/config";
+        setsPath = botNamePath + "/sets";
+        mapsPath = botNamePath + "/maps";
     }
 
     private HashSet<String> getPronouns() {
@@ -201,7 +191,7 @@ public class Bot {
      * @param moreCategories list of categories
      */
     private void addMoreCategories(String file, ArrayList<Category> moreCategories) {
-        if (file.contains(MagicStrings.learnf_aiml_file)) {
+        if (file.contains(Constants.learnfAimlFile)) {
             for (Category c : moreCategories) {
                 brain.addCategory(c);
                 learnfGraph.addCategory(c);
@@ -237,7 +227,7 @@ public class Bot {
                                 log.trace("Reading AIML {}", file);
                             }
                             try {
-                                ArrayList<Category> moreCategories = AIMLProcessor.AIMLToCategories(aimlPath, file);
+                                ArrayList<Category> moreCategories = processor.AIMLToCategories(aimlPath, file);
                                 addMoreCategories(file, moreCategories);
                                 count += moreCategories != null ? moreCategories.size() : 0;
                             } catch (Exception e) {
@@ -355,7 +345,7 @@ public class Bot {
      * write learned categories to AIMLIF file
      */
     public boolean writeLearnfIFCategories() {
-        return writeCertainIFCategories(learnfGraph, MagicStrings.learnf_aiml_file);
+        return writeCertainIFCategories(learnfGraph, Constants.learnfAimlFile);
     }
 
     /**
@@ -386,7 +376,7 @@ public class Bot {
         }
 
         HashMap<String, BufferedWriter> fileMap = new HashMap<>();
-        Category build = new Category(0, "BRAIN BUILD", "*", "*", new Date().toString(), "update.aiml");
+        Category build = new Category(this, 0, "BRAIN BUILD", "*", "*", new Date().toString(), "update.aiml");
         brain.addCategory(build);
         ArrayList<Category> brainCategories = brain.getCategories();
         brainCategories.sort(Category.CATEGORY_NUMBER_COMPARATOR);
@@ -434,13 +424,13 @@ public class Bot {
             log.trace("writeAIMLFiles");
         }
         HashMap<String, BufferedWriter> fileMap = new HashMap<>();
-        Category build = new Category(0, "BRAIN BUILD", "*", "*", new Date().toString(), "update.aiml");
+        Category build = new Category(this, 0, "BRAIN BUILD", "*", "*", new Date().toString(), "update.aiml");
         brain.addCategory(build);
 
         ArrayList<Category> brainCategories = brain.getCategories();
         brainCategories.sort(Category.CATEGORY_NUMBER_COMPARATOR);
         for (Category c : brainCategories) {
-            if (!c.getFilename().equals(MagicStrings.null_aiml_file))
+            if (!c.getFilename().equals(Constants.nullAimlFile))
                 try {
                     BufferedWriter bw;
                     String fileName = c.getFilename();
@@ -502,7 +492,7 @@ public class Bot {
                 String strLine;
                 while ((strLine = br.readLine()) != null) {
                     try {
-                        Category c = Category.IFToCategory(strLine);
+                        Category c = Category.IFToCategory(this, strLine);
                         categories.add(c);
                     } catch (Exception e) {
                         log.error("Invalid AIMLIF in {} line {}", filename, strLine);
