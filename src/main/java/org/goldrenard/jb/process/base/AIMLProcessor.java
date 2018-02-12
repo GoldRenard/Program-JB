@@ -17,10 +17,14 @@
         Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
         Boston, MA  02110-1301, USA.
 */
-package org.goldrenard.jb;
+package org.goldrenard.jb.process.base;
 
+import org.goldrenard.jb.Bot;
+import org.goldrenard.jb.Chat;
+import org.goldrenard.jb.TripleStore;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.*;
+import org.goldrenard.jb.process.*;
 import org.goldrenard.jb.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,11 +33,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,16 +46,22 @@ public class AIMLProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(AIMLProcessor.class);
 
-    private Set<AIMLProcessorExtension> extensions = new HashSet<>();
-
-    private int sraiCount = 0;
-
-    private Map<String, Tuple> tupleMap = new ConcurrentHashMap<>();
+    private Map<String, AIMLNodeProcessor> nodeProcessors = new HashMap<>();
 
     private final Bot bot;
 
     public AIMLProcessor(Bot bot) {
         this.bot = bot;
+        registerProcessor(new CommentProcessor(this));
+        registerProcessor(new ConditionProcessor(this));
+        registerProcessor(new MapProcessor(this));
+        registerProcessor(new PredicateProcessor(this));
+        registerProcessor(new RandomProcessor(this));
+        registerProcessor(new SraiProcessor(this));
+        registerProcessor(new SraixProcessor(this));
+        registerProcessor(new SrProcessor(this));
+        registerProcessor(new TemplateProcessor(this));
+        registerProcessor(new TextProcessor(this));
     }
 
     /**
@@ -223,14 +229,13 @@ public class AIMLProcessor {
         if (input == null || input.length() == 0) {
             input = Constants.null_input;
         }
-        sraiCount = srCnt;
         response = chatSession.getBot().getConfiguration().getLanguage().getDefaultResponse();
         try {
             Nodemapper leaf = chatSession.getBot().getBrain().match(input, that, topic);
             if (leaf == null) {
                 return (response);
             }
-            ParseState ps = new ParseState(0, chatSession, input, that, topic, leaf);
+            ParseState ps = new ParseState(0, chatSession, input, that, topic, leaf, srCnt);
             //chatSession.matchTrace += leaf.category.getTemplate()+"\n";
             String template = leaf.getCategory().getTemplate();
             response = evalTemplate(template, ps);
@@ -382,53 +387,6 @@ public class AIMLProcessor {
     }
 
     /**
-     * implements AIML <srai> tag
-     *
-     * @param node current parse node.
-     * @param ps   current parse state.
-     * @return the result of processing the <srai>
-     */
-    private String srai(Node node, ParseState ps) {
-        if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.srai(node: {}, ps: {}", node, ps);
-        }
-        sraiCount++;
-        if (sraiCount > bot.getConfiguration().getMaxRecursionCount()
-                || ps.getDepth() > bot.getConfiguration().getMaxRecursionDepth()) {
-            return bot.getConfiguration().getLanguage().getTooMuchRecursion();
-        }
-        String response = bot.getConfiguration().getLanguage().getDefaultResponse();
-        try {
-            String result = evalTagContent(node, ps, null);
-            result = result.trim();
-            result = result.replaceAll("(\r\n|\n\r|\r|\n)", " ");
-            result = ps.getChatSession().getBot().getPreProcessor().normalize(result);
-            if (bot.getConfiguration().isJpTokenize()) {
-                result = JapaneseUtils.tokenizeSentence(result);
-            }
-            String topic = ps.getChatSession().getPredicates().get("topic");     // the that stays the same, but the topic may have changed
-            if (log.isTraceEnabled()) {
-                log.trace("<srai>{}</srai> from {} topic={}", result, ps.getLeaf().getCategory().inputThatTopic(), topic);
-            }
-            Nodemapper leaf = ps.getChatSession().getBot().getBrain().match(result, ps.getThat(), topic);
-            if (leaf == null) {
-                return response;
-            }
-            if (log.isTraceEnabled()) {
-                log.trace("Srai returned {}:{}, that=", leaf.getCategory().inputThatTopic(), leaf.getCategory().getTemplate());
-            }
-            response = evalTemplate(leaf.getCategory().getTemplate(), new ParseState(ps.getDepth() + 1, ps.getChatSession(), ps.getInput(), ps.getThat(), topic, leaf));
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        String result = response.trim();
-        if (log.isTraceEnabled()) {
-            log.trace("in AIMLProcessor.srai(), returning: {}", result);
-        }
-        return result;
-    }
-
-    /**
      * in AIML 2.0, an attribute value can be specified by either an XML attribute value
      * or a subtag of the same name.  This function tries to read the value from the XML attribute first,
      * then tries to look for the subtag.
@@ -467,132 +425,6 @@ public class AIMLProcessor {
             log.trace("in AIMLProcessor.getAttributeOrTagValue (), returning: {}", result);
         }
         return result;
-    }
-
-    /**
-     * access external web service for response
-     * implements <sraix></sraix>
-     * and its attribute variations.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return response from remote service or string indicating failure.
-     */
-    private String sraix(Node node, ParseState ps) {
-        Set<String> attributeNames = Utilities.stringSet("botid", "host");
-        String host = getAttributeOrTagValue(node, ps, "host");
-        String botid = getAttributeOrTagValue(node, ps, "botid");
-        String hint = getAttributeOrTagValue(node, ps, "hint");
-        String limit = getAttributeOrTagValue(node, ps, "limit");
-        String defaultResponse = getAttributeOrTagValue(node, ps, "default");
-        String evalResult = evalTagContent(node, ps, attributeNames);
-        return Sraix.sraix(ps.getChatSession(), ps.getChatSession().getBot(),
-                evalResult, defaultResponse, hint, host, botid, null, limit);
-    }
-
-    /**
-     * map an element of one string set to an element of another
-     * Implements <map name="mapname"></map>   and <map><name>mapname</name></map>
-     *
-     * @param node current XML parse node
-     * @param ps   current AIML parse state
-     * @return the map result or a string indicating the key was not found
-     */
-    private String map(Node node, ParseState ps) {
-        String result = Constants.default_map;
-        Set<String> attributeNames = Utilities.stringSet("name");
-        String mapName = getAttributeOrTagValue(node, ps, "name");
-        String contents = evalTagContent(node, ps, attributeNames);
-        contents = contents.trim();
-        if (mapName == null) {
-            result = "<map>" + contents + "</map>"; // this is an OOB map tag (no attribute)
-        } else {
-            AIMLMap map = ps.getChatSession().getBot().getMaps().get(mapName);
-            if (map != null) {
-                result = map.get(contents.toUpperCase());
-            }
-            if (log.isTraceEnabled()) {
-                log.trace("AIMLProcessor map {} ", result);
-            }
-            if (result == null) {
-                result = Constants.default_map;
-            }
-            result = result.trim();
-        }
-        return result;
-    }
-
-    /**
-     * set the value of an AIML predicate.
-     * Implements <set name="predicate"></set> and <set var="varname"></set>
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the result of the <set> operation
-     */
-    private String set(Node node, ParseState ps) {
-        if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.set(node: {}, ps: {})", node, ps);
-        }
-        Set<String> attributeNames = Utilities.stringSet("name", "var");
-        String predicateName = getAttributeOrTagValue(node, ps, "name");
-        String varName = getAttributeOrTagValue(node, ps, "var");
-        String result = evalTagContent(node, ps, attributeNames).trim();
-        result = result.replaceAll("(\r\n|\n\r|\r|\n)", " ");
-        String value = result.trim();
-        if (predicateName != null) {
-            ps.getChatSession().getPredicates().put(predicateName, result);
-            if (log.isTraceEnabled()) {
-                log.trace("Set predicate {} to {} in {}", predicateName, result, ps.getLeaf().getCategory().inputThatTopic());
-            }
-        }
-        if (varName != null) {
-            ps.getVars().put(varName, result);
-            if (log.isTraceEnabled()) {
-                log.trace("Set var {} to {} in {}", varName, value, ps.getLeaf().getCategory().inputThatTopic());
-            }
-        }
-        if (ps.getChatSession().getBot().getPronouns().contains(predicateName)) {
-            result = predicateName;
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("in AIMLProcessor.set, returning: {}", result);
-        }
-        return result;
-    }
-
-    /**
-     * get the value of an AIML predicate.
-     * implements <get name="predicate"></get>  and <get var="varname"></get>
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the result of the <get> operation
-     */
-    private String get(Node node, ParseState ps) {
-        if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.get(node: {}, ps: {})", node, ps);
-        }
-        String result = Constants.default_get;
-        String predicateName = getAttributeOrTagValue(node, ps, "name");
-        String varName = getAttributeOrTagValue(node, ps, "var");
-        String tupleName = getAttributeOrTagValue(node, ps, "tuple");
-        if (predicateName != null) {
-            result = ps.getChatSession().getPredicates().get(predicateName).trim();
-        } else if (varName != null && tupleName != null) {
-            result = tupleGet(tupleName, varName);
-        } else if (varName != null) {
-            result = ps.getVars().get(varName).trim();
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("in AIMLProcessor.get, returning: {}", result);
-        }
-        return result;
-    }
-
-    private String tupleGet(String tupleName, String varName) {
-        Tuple tuple = tupleMap.get(tupleName);
-        return tuple == null ? Constants.default_get : tuple.getValue(varName);
     }
 
     /**
@@ -1030,26 +862,6 @@ public class AIMLProcessor {
         return result.trim();
     }
 
-    /**
-     * implements {@code <random>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return response randomly selected from the list
-     */
-    private String random(Node node, ParseState ps) {
-        NodeList childList = node.getChildNodes();
-        ArrayList<Node> liList = new ArrayList<>();
-        for (int i = 0; i < childList.getLength(); i++) {
-            if (childList.item(i).getNodeName().equals("li")) liList.add(childList.item(i));
-        }
-        int index = (int) (Math.random() * liList.size());
-        if (ps.getChatSession() != null && ps.getChatSession().getBot().getConfiguration().isQaTestMode()) {
-            index = 0;
-        }
-        return evalTagContent(liList.get(index), ps, null);
-    }
-
     private String unevaluatedAIML(Node node, ParseState ps) {
         String result = learnEvalTagContent(node, ps);
         return unevaluatedXML(result, node, ps);
@@ -1126,93 +938,6 @@ public class AIMLProcessor {
     }
 
     /**
-     * implements {@code <condition> with <loop/>}
-     * re-evaluate the conditional statement until the response does not contain {@code <loop/>}
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return result of conditional expression
-     */
-    private String loopCondition(Node node, ParseState ps) {
-        boolean loop = true;
-        StringBuilder result = new StringBuilder();
-        int loopCnt = 0;
-        while (loop && loopCnt < bot.getConfiguration().getMaxLoops()) {
-            String loopResult = condition(node, ps);
-            String tooMuch = bot.getConfiguration().getLanguage().getTooMuchRecursion();
-            if (loopResult.trim().equals(tooMuch)) {
-                return tooMuch;
-            }
-            if (loopResult.contains("<loop/>")) {
-                loopResult = loopResult.replace("<loop/>", "");
-                loop = true;
-            } else {
-                loop = false;
-            }
-            result.append(loopResult);
-        }
-        return loopCnt >= bot.getConfiguration().getMaxLoops()
-                ? bot.getConfiguration().getLanguage().getTooMuchLooping()
-                : result.toString();
-    }
-
-    /**
-     * implements all 3 forms of the {@code <condition> tag}
-     * In AIML 2.0 the conditional may return a {@code <loop/>}
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return result of conditional expression
-     */
-    private String condition(Node node, ParseState ps) {
-        NodeList childList = node.getChildNodes();
-        ArrayList<Node> liList = new ArrayList<>();
-        String predicate, varName, value; //Node p=null, v=null;
-        Set<String> attributeNames = Utilities.stringSet("name", "var", "value");
-        // First check if the <condition> has an attribute "name".  If so, get the predicate name.
-        predicate = getAttributeOrTagValue(node, ps, "name");
-        varName = getAttributeOrTagValue(node, ps, "var");
-        // Make a list of all the <li> child nodes:
-        for (int i = 0; i < childList.getLength(); i++) {
-            if (childList.item(i).getNodeName().equals("li")) liList.add(childList.item(i));
-        }
-        if (liList.size() == 0 && (value = getAttributeOrTagValue(node, ps, "value")) != null &&
-                predicate != null &&
-                ps.getChatSession().getPredicates().get(predicate).equalsIgnoreCase(value)) {
-            return evalTagContent(node, ps, attributeNames);
-        } else if (liList.size() == 0 && (value = getAttributeOrTagValue(node, ps, "value")) != null &&
-                varName != null &&
-                ps.getVars().get(varName).equalsIgnoreCase(value)) {
-            return evalTagContent(node, ps, attributeNames);
-        } else {
-            for (Node n : liList) {
-                String liPredicate = predicate;
-                String liVarName = varName;
-                if (liPredicate == null) {
-                    liPredicate = getAttributeOrTagValue(n, ps, "name");
-                }
-                if (liVarName == null) {
-                    liVarName = getAttributeOrTagValue(n, ps, "var");
-                }
-                value = getAttributeOrTagValue(n, ps, "value");
-                if (value != null) {
-                    // if the predicate equals the value, return the <li> item.
-                    if (liPredicate != null && (ps.getChatSession().getPredicates().get(liPredicate).equalsIgnoreCase(value) ||
-                            (ps.getChatSession().getPredicates().containsKey(liPredicate) && value.equals("*")))) {
-                        return evalTagContent(n, ps, attributeNames);
-                    } else if (liVarName != null && (ps.getVars().get(liVarName).equalsIgnoreCase(value) ||
-                            (ps.getVars().containsKey(liPredicate) && value.equals("*")))) {
-                        return evalTagContent(n, ps, attributeNames);
-                    }
-                } else {
-                    return evalTagContent(n, ps, attributeNames);
-                }
-            }
-        }
-        return "";
-    }
-
-    /**
      * check to see if a result contains a {@code <loop/>} tag.
      *
      * @param node current XML parse node
@@ -1264,7 +989,7 @@ public class AIMLProcessor {
                 vars.add(contents);
             }
         }
-        Tuple partial = storeTuple(new Tuple(vars, visibleVars));
+        Tuple partial = ps.getChatSession().getTripleStore().storeTuple(new Tuple(vars, visibleVars));
         Clause clause = new Clause(subj, pred, obj);
         Set<Tuple> tuples = ps.getChatSession().getTripleStore().selectFromSingleClause(partial, clause, true);
         String tupleList = tuples.stream().map(Tuple::getName).collect(Collectors.joining(" "));
@@ -1276,12 +1001,7 @@ public class AIMLProcessor {
             var = x;
         }
         String firstTuple = firstWord(tupleList);
-        return tupleGet(firstTuple, var);
-    }
-
-    public Tuple storeTuple(Tuple tuple) {
-        tupleMap.put(tuple.getName(), tuple);
-        return tuple;
+        return ps.getChatSession().getTripleStore().tupleGet(firstTuple, var);
     }
 
     public String select(Node node, ParseState ps) {
@@ -1421,35 +1141,20 @@ public class AIMLProcessor {
      * @param node current XML parse node
      * @param ps   AIML parse state
      */
-    private String recursEval(Node node, ParseState ps) {
+    public String recursEval(Node node, ParseState ps) {
         if (log.isTraceEnabled()) {
             log.trace("AIMLProcessor.recursEval(node: {}, ps: {})", node, ps);
         }
         try {
             String nodeName = node.getNodeName();
+
+            AIMLNodeProcessor processor = nodeProcessors.get(nodeName);
+            if (processor != null && processor.getTags().contains(nodeName)) {
+                return processor.eval(node, ps);
+            }
+
             switch (nodeName) {
-                case "#text":
-                    return node.getNodeValue();
-                case "#comment":
-                    return "";
-                case "template":
-                    return evalTagContent(node, ps, null);
-                case "random":
-                    return random(node, ps);
-                case "condition":
-                    return loopCondition(node, ps);
-                case "srai":
-                    return srai(node, ps);
-                case "sr":
-                    return respond(ps.getStarBindings().getInputStars().star(0), ps.getThat(), ps.getTopic(), ps.getChatSession(), sraiCount);
-                case "sraix":
-                    return sraix(node, ps);
-                case "set":
-                    return set(node, ps);
-                case "get":
-                    return get(node, ps);
-                case "map": // AIML 2.0 -- see also <set> in pattern
-                    return map(node, ps);
+
                 case "bot":
                     return bot(node, ps);
                 case "id":
@@ -1524,13 +1229,6 @@ public class AIMLProcessor {
                 case "resetlearn":
                     return resetlearn(ps);
                 default:
-                    if (extensions != null) {
-                        for (AIMLProcessorExtension extension : extensions) {
-                            if (extension != null && extension.extensionTagSet().contains(nodeName)) {
-                                return extension.recursEval(node, ps);
-                            }
-                        }
-                    }
                     return genericXML(node, ps);
             }
         } catch (Exception e) {
@@ -1546,7 +1244,7 @@ public class AIMLProcessor {
      * @param ps       AIML Parse state
      * @return result of evaluating template.
      */
-    private String evalTemplate(String template, ParseState ps) {
+    public String evalTemplate(String template, ParseState ps) {
         try {
             template = "<template>" + template + "</template>";
             Node root = DomUtils.parseString(template);
@@ -1577,8 +1275,12 @@ public class AIMLProcessor {
         return false;
     }
 
-    public void registerExtension(AIMLProcessorExtension extension) {
-        this.extensions.add(extension);
-        extension.setProcessor(this);
+    public void registerProcessor(AIMLNodeProcessor processor) {
+        for (String tag : processor.getTags()) {
+            if (nodeProcessors.containsKey(tag)) {
+                throw new IllegalStateException("Duplicate tag handler: " + tag);
+            }
+            this.nodeProcessors.put(tag, processor);
+        }
     }
 }

@@ -24,12 +24,15 @@ import lombok.Setter;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.History;
 import org.goldrenard.jb.model.Predicates;
+import org.goldrenard.jb.model.Tuple;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class encapsulating a chat session between a bot and a client

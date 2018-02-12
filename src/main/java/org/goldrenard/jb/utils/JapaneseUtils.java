@@ -1,7 +1,7 @@
 package org.goldrenard.jb.utils;
 
 import net.reduls.sanmoku.Tagger;
-import org.goldrenard.jb.AIMLProcessor;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;

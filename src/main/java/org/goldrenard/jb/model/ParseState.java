@@ -37,6 +37,7 @@ public class ParseState {
     private int depth;
     private Predicates vars;
     private StarBindings starBindings;
+    private int sraiCount;
 
     /**
      * Constructor - class has public members
@@ -48,7 +49,7 @@ public class ParseState {
      * @param topic       current topic
      * @param leaf        node containing the category processed
      */
-    public ParseState(int depth, Chat chatSession, String input, String that, String topic, Nodemapper leaf) {
+    public ParseState(int depth, Chat chatSession, String input, String that, String topic, Nodemapper leaf, int sraiCount) {
         this.chatSession = chatSession;
         this.input = input;
         this.that = that;
@@ -57,5 +58,6 @@ public class ParseState {
         this.depth = depth;  // to prevent runaway recursion
         this.vars = new Predicates(chatSession.getBot());
         this.starBindings = leaf.getStarBindings();
+        this.sraiCount = sraiCount;
     }
 }

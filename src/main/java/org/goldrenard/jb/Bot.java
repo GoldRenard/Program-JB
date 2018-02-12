@@ -31,6 +31,7 @@ import org.goldrenard.jb.parser.PronounsResource;
 import org.goldrenard.jb.parser.base.CollectionResource;
 import org.goldrenard.jb.parser.base.NamedResource;
 import org.goldrenard.jb.parser.SetsResource;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.Timer;
 import org.goldrenard.jb.utils.Utilities;

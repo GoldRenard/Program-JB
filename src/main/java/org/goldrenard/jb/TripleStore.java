@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
@@ -25,6 +26,8 @@ public class TripleStore {
     private Map<String, Set<String>> subjectTriples = new HashMap<>();
     private Map<String, Set<String>> predicateTriples = new HashMap<>();
     private Map<String, Set<String>> objectTriples = new HashMap<>();
+
+    private Map<String, Tuple> tupleMap = new ConcurrentHashMap<>();
 
     public TripleStore(String name, Bot bot) {
         this.name = name;
@@ -245,7 +248,7 @@ public class TripleStore {
     public Set<Tuple> select(Set<String> vars, Set<String> visibleVars, List<Clause> clauses) {
         Set<Tuple> result = new HashSet<>();
         try {
-            Tuple tuple = bot.getProcessor().storeTuple(new Tuple(vars, visibleVars));
+            Tuple tuple = storeTuple(new Tuple(vars, visibleVars));
             result = selectFromRemainingClauses(tuple, clauses);
         } catch (Exception e) {
             log.error("Error", e);
@@ -282,7 +285,7 @@ public class TripleStore {
     }
 
     public Tuple bindTuple(Tuple partial, String triple, Clause clause) {
-        Tuple tuple = bot.getProcessor().storeTuple(new Tuple(partial));
+        Tuple tuple = storeTuple(new Tuple(partial));
         if (clause.getSubj().startsWith("?")) tuple.bind(clause.getSubj(), getSubject(triple));
         if (clause.getPred().startsWith("?")) tuple.bind(clause.getPred(), getPredicate(triple));
         if (clause.getObj().startsWith("?")) tuple.bind(clause.getObj(), getObject(triple));
@@ -316,5 +319,15 @@ public class TripleStore {
             }
         } else result = tuples;
         return result;
+    }
+
+    public Tuple storeTuple(Tuple tuple) {
+        tupleMap.put(tuple.getName(), tuple);
+        return tuple;
+    }
+
+    public String tupleGet(String tupleName, String varName) {
+        Tuple tuple = tupleMap.get(tupleName);
+        return tuple == null ? Constants.default_get : tuple.getValue(varName);
     }
 }
