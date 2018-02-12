@@ -41,22 +41,19 @@ import java.util.HashMap;
 @Setter
 public class AIMLMap extends HashMap<String, String> implements NamedEntity {
 
-    private static final Logger log = LoggerFactory.getLogger(AIMLMap.class);
+    private final Bot bot;
 
-    @Getter
-    private String name;
+    private final String name;
+
     private String host;    // for external maps
     private String botId;   // for external maps
-    private boolean isExternal = false;
-    private Bot bot;
-
+    private boolean external = false;
     /**
      * constructor to create a new AIML Map
      *
      * @param name the name of the map
      */
     public AIMLMap(String name, Bot bot) {
-        super();
         this.bot = bot;
         this.name = name;
     }
@@ -87,11 +84,11 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
             return Inflector.getInstance().singularize(key).toLowerCase();
         } else if (name.equals("plural")) {
             return Inflector.getInstance().pluralize(key).toLowerCase();
-        } else if (isExternal && bot.getConfiguration().isEnableExternalMaps()) {
+        } else if (external && bot.getConfiguration().isEnableExternalMaps()) {
             //String[] split = key.split(" ");
             String query = name.toUpperCase() + " " + key;
-            String response = Sraix.sraix(null, bot, query, Constants.default_map, null, host, botId, null, "0");
-            log.info("External {}({})={}" + response, name, key, response);
+            String response = Sraix.sraix(null, bot, query, Constants.default_map, null, host, botId,
+                    null, "0");
             value = response;
         } else {
             value = super.get(key);
@@ -99,23 +96,7 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
         if (value == null) {
             value = Constants.default_map;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("AIMLMap get {}={}", key, value);
-        }
-        return value;
-    }
 
-    /**
-     * put a new key, value pair into the map.
-     *
-     * @param key   the domain element
-     * @param value the range element
-     * @return the value
-     */
-    public String put(String key, String value) {
-        if (log.isDebugEnabled()) {
-            log.debug("AIMLMap put {}={}", key, value);
-        }
-        return super.put(key, value);
+        return value;
     }
 }

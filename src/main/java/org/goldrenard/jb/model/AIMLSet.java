@@ -38,19 +38,17 @@ import java.util.regex.Pattern;
 @Setter
 public class AIMLSet extends HashSet<String> implements NamedEntity {
 
-    private static final Logger log = LoggerFactory.getLogger(AIMLSet.class);
-
     private static final Pattern DIGITS_PATTERN = Pattern.compile("[0-9]+");
 
-    @Getter
-    private String name;
+    private final String name;
+
+    private final Bot bot;
 
     private int maxLength = 1; // there are no empty sets
 
     private String host; // for external sets
     private String botId; // for external sets
-    private boolean isExternal = false;
-    private Bot bot;
+    private boolean external = false;
     private HashSet<String> inCache = new HashSet<>();
     private HashSet<String> outCache = new HashSet<>();
 
@@ -69,7 +67,7 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
     }
 
     public boolean contains(String s) {
-        if (isExternal && bot.getConfiguration().isEnableExternalSets()) {
+        if (external && bot.getConfiguration().isEnableExternalSets()) {
             if (inCache.contains(s)) {
                 return true;
             }
