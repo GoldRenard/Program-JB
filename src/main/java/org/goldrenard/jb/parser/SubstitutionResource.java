@@ -35,31 +35,6 @@ public class SubstitutionResource extends CollectionResource<Substitution> {
         return size();
     }
 
-    /**
-     * Apply a sequence of subsitutions to an input string
-     *
-     * @param request  input request
-     * @return result of applying substitutions to input
-     */
-    public String process(String request) {
-        String result = " " + request + " ";
-        try {
-            for (Substitution substitution : this) {
-                Matcher matcher = substitution.getPattern().matcher(result);
-                if (matcher.find()) {
-                    result = matcher.replaceAll(substitution.getSubstitution());
-                }
-            }
-            while (result.contains("  ")) {
-                result = result.replace("  ", " ");
-            }
-            result = result.trim();
-        } catch (Exception e) {
-            log.error("Request {} Result {}", request, result, e);
-        }
-        return result.trim();
-    }
-
     private Substitution parse(String input) {
         Substitution substitution = null;
         Matcher matcher = ENTRY_PATTERN.matcher(input);

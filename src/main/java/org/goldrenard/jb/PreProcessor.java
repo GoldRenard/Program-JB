@@ -19,11 +19,13 @@
 */
 package org.goldrenard.jb;
 
+import org.goldrenard.jb.model.Substitution;
 import org.goldrenard.jb.parser.SubstitutionResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.regex.Matcher;
 
 /**
  * AIML Preprocessor and substitutions
@@ -52,18 +54,45 @@ public class PreProcessor {
     public PreProcessor(Bot bot) {
         this.bot = bot;
         normal = new SubstitutionResource(bot);
-        normal.read(bot.getConfigPath() + "/normal.txt");
         denormal = new SubstitutionResource(bot);
-        denormal.read(bot.getConfigPath() + "/denormal.txt");
         person = new SubstitutionResource(bot);
-        person.read(bot.getConfigPath() + "/person.txt");
         person2 = new SubstitutionResource(bot);
-        person2.read(bot.getConfigPath() + "/person2.txt");
         gender = new SubstitutionResource(bot);
+
+        normal.read(bot.getConfigPath() + "/normal.txt");
+        denormal.read(bot.getConfigPath() + "/denormal.txt");
+        person.read(bot.getConfigPath() + "/person.txt");
+        person2.read(bot.getConfigPath() + "/person2.txt");
         gender.read(bot.getConfigPath() + "/gender.txt");
         if (log.isTraceEnabled()) {
-            log.trace("Preprocessor: {} norms {} persons {} person2 ", normal.size(), person.size(), person2.size());
+            log.trace("PreProcessor: {} norms, {} denorms, {} persons, {} person2, {} genders ",
+                    normal.size(), denormal.size(), person.size(), person2.size(), gender.size());
         }
+    }
+
+    /**
+     * Apply a sequence of subsitutions to an input string
+     *
+     * @param request  input request
+     * @return result of applying substitutions to input
+     */
+    private String substitute(SubstitutionResource resource, String request) {
+        String result = " " + request + " ";
+        try {
+            for (Substitution substitution : resource) {
+                Matcher matcher = substitution.getPattern().matcher(result);
+                if (matcher.find()) {
+                    result = matcher.replaceAll(substitution.getSubstitution());
+                }
+            }
+            while (result.contains("  ")) {
+                result = result.replace("  ", " ");
+            }
+            result = result.trim();
+        } catch (Exception e) {
+            log.error("Request {} Result {}", request, result, e);
+        }
+        return result.trim();
     }
 
     /**
@@ -76,7 +105,7 @@ public class PreProcessor {
         if (log.isDebugEnabled()) {
             log.debug("PreProcessor.normalize(request: {})", request);
         }
-        String result = normal.process(request);
+        String result = substitute(normal, request);
         result = result.replaceAll("(\r\n|\n\r|\r|\n)", " ");
         if (log.isDebugEnabled()) {
             log.debug("PreProcessor.normalize() returning: {}", result);
@@ -91,7 +120,7 @@ public class PreProcessor {
      * @return normalized client input
      */
     public String denormalize(String request) {
-        return denormal.process(request);
+        return substitute(denormal, request);
     }
 
     /**
@@ -101,7 +130,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String person(String input) {
-        return person.process(input);
+        return substitute(person, input);
     }
 
     /**
@@ -111,7 +140,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String person2(String input) {
-        return person2.process(input);
+        return substitute(person2, input);
     }
 
     /**
@@ -121,7 +150,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String gender(String input) {
-        return gender.process(input);
+        return substitute(gender, input);
     }
 
     /**
