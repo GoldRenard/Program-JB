@@ -15,7 +15,7 @@ import java.util.*;
 @Setter
 public class TripleStore {
 
-    private static final Logger log = LoggerFactory.getLogger(TestAB.class);
+    private static final Logger log = LoggerFactory.getLogger(TripleStore.class);
 
     private int idCnt = 0;
     private String name = "unknown";

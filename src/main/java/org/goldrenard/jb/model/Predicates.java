@@ -71,9 +71,6 @@ public class Predicates extends HashMap<String, String> {
      */
     public String get(String key) {
         String result = super.get(key);
-        if (result == null) {
-            result = Constants.default_get;
-        }
         return result != null ? result : Constants.default_get;
     }
 
