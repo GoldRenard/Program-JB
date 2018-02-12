@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// https://api.duckduckgo.com/?q=query&format=json&pretty=1
 public class Sraix {
 
     private static final Logger log = LoggerFactory.getLogger(Sraix.class);

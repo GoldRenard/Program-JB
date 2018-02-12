@@ -19,13 +19,11 @@
 */
 package org.goldrenard.jb;
 
-import org.goldrenard.jb.configuration.Constants;
+import org.goldrenard.jb.parser.SubstitutionResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * AIML Preprocessor and substitutions
@@ -35,21 +33,16 @@ public class PreProcessor {
     private static final Logger log = LoggerFactory.getLogger(PreProcessor.class);
 
     private final Bot bot;
-    private int normalCount = 0;
-    private int denormalCount = 0;
-    private int personCount = 0;
-    private int person2Count = 0;
-    private int genderCount = 0;
-    private String[] normalSubs;
-    private Pattern[] normalPatterns;
-    private String[] denormalSubs;
-    private Pattern[] denormalPatterns;
-    private String[] personSubs;
-    private Pattern[] personPatterns;
-    private String[] person2Subs;
-    private Pattern[] person2Patterns;
-    private String[] genderSubs;
-    private Pattern[] genderPatterns;
+
+    private final SubstitutionResource normal;
+
+    private final SubstitutionResource denormal;
+
+    private final SubstitutionResource person;
+
+    private final SubstitutionResource person2;
+
+    private final SubstitutionResource gender;
 
     /**
      * Constructor given bot
@@ -58,24 +51,18 @@ public class PreProcessor {
      */
     public PreProcessor(Bot bot) {
         this.bot = bot;
-        int maxSubstitutions = bot.getConfiguration().getMaxSubstitutions();
-        normalSubs = new String[maxSubstitutions];
-        normalPatterns = new Pattern[maxSubstitutions];
-        denormalSubs = new String[maxSubstitutions];
-        denormalPatterns = new Pattern[maxSubstitutions];
-        personSubs = new String[maxSubstitutions];
-        personPatterns = new Pattern[maxSubstitutions];
-        person2Subs = new String[maxSubstitutions];
-        person2Patterns = new Pattern[maxSubstitutions];
-        genderSubs = new String[maxSubstitutions];
-        genderPatterns = new Pattern[maxSubstitutions];
-        normalCount = readSubstitutions(bot.getConfigPath() + "/normal.txt", normalPatterns, normalSubs);
-        denormalCount = readSubstitutions(bot.getConfigPath() + "/denormal.txt", denormalPatterns, denormalSubs);
-        personCount = readSubstitutions(bot.getConfigPath() + "/person.txt", personPatterns, personSubs);
-        person2Count = readSubstitutions(bot.getConfigPath() + "/person2.txt", person2Patterns, person2Subs);
-        genderCount = readSubstitutions(bot.getConfigPath() + "/gender.txt", genderPatterns, genderSubs);
+        normal = new SubstitutionResource(bot);
+        normal.read(bot.getConfigPath() + "/normal.txt");
+        denormal = new SubstitutionResource(bot);
+        denormal.read(bot.getConfigPath() + "/denormal.txt");
+        person = new SubstitutionResource(bot);
+        person.read(bot.getConfigPath() + "/person.txt");
+        person2 = new SubstitutionResource(bot);
+        person2.read(bot.getConfigPath() + "/person2.txt");
+        gender = new SubstitutionResource(bot);
+        gender.read(bot.getConfigPath() + "/gender.txt");
         if (log.isTraceEnabled()) {
-            log.trace("Preprocessor: {} norms {} persons {} person2 ", normalCount, personCount, person2Count);
+            log.trace("Preprocessor: {} norms {} persons {} person2 ", normal.size(), person.size(), person2.size());
         }
     }
 
@@ -89,7 +76,7 @@ public class PreProcessor {
         if (log.isDebugEnabled()) {
             log.debug("PreProcessor.normalize(request: {})", request);
         }
-        String result = substitute(request, normalPatterns, normalSubs, normalCount);
+        String result = normal.process(request);
         result = result.replaceAll("(\r\n|\n\r|\r|\n)", " ");
         if (log.isDebugEnabled()) {
             log.debug("PreProcessor.normalize() returning: {}", result);
@@ -104,7 +91,7 @@ public class PreProcessor {
      * @return normalized client input
      */
     public String denormalize(String request) {
-        return substitute(request, denormalPatterns, denormalSubs, denormalCount);
+        return denormal.process(request);
     }
 
     /**
@@ -114,7 +101,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String person(String input) {
-        return substitute(input, personPatterns, personSubs, personCount);
+        return person.process(input);
     }
 
     /**
@@ -124,7 +111,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String person2(String input) {
-        return substitute(input, person2Patterns, person2Subs, person2Count);
+        return person2.process(input);
     }
 
     /**
@@ -134,97 +121,7 @@ public class PreProcessor {
      * @return sentence with pronouns swapped
      */
     public String gender(String input) {
-        return substitute(input, genderPatterns, genderSubs, genderCount);
-
-    }
-
-    /**
-     * Apply a sequence of subsitutions to an input string
-     *
-     * @param request  input request
-     * @param patterns array of patterns to match
-     * @param subs     array of substitution values
-     * @param count    number of patterns and substitutions
-     * @return result of applying substitutions to input
-     */
-    private String substitute(String request, Pattern[] patterns, String[] subs, int count) {
-        String result = " " + request + " ";
-        int index = 0;
-        try {
-            for (int i = 0; i < count; i++) {
-                index = i;
-                String replacement = subs[i];
-                Pattern p = patterns[i];
-                Matcher m = p.matcher(result);
-                if (m.find()) {
-                    result = m.replaceAll(replacement);
-                }
-            }
-            while (result.contains("  ")) {
-                result = result.replace("  ", " ");
-            }
-            result = result.trim();
-        } catch (Exception e) {
-            log.error("Request {} Result {} at {} {} {}", request, result, index, patterns[index], subs[index], e);
-        }
-        return result.trim();
-    }
-
-    /**
-     * read substitutions from input stream
-     *
-     * @param in       input stream
-     * @param patterns array of patterns
-     * @param subs     array of substitution values
-     * @return number of patterns substitutions read
-     */
-    public int readSubstitutionsFromInputStream(InputStream in, Pattern[] patterns, String[] subs) {
-        int subCount = 0;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            String strLine;
-            //Read File Line By Line
-            while ((strLine = reader.readLine()) != null) {
-                strLine = strLine.trim();
-                if (!strLine.startsWith(Constants.text_comment_mark)) {
-                    Pattern pattern = Pattern.compile("\"(.*?)\",\"(.*?)\"", Pattern.DOTALL);
-                    Matcher matcher = pattern.matcher(strLine);
-                    if (matcher.find() && subCount < bot.getConfiguration().getMaxSubstitutions()) {
-                        subs[subCount] = matcher.group(2);
-                        String quotedPattern = Pattern.quote(matcher.group(1));
-                        patterns[subCount] = Pattern.compile(quotedPattern, Pattern.CASE_INSENSITIVE);
-                        subCount++;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error:", e);
-        }
-        return subCount;
-    }
-
-    /**
-     * read substitutions from a file
-     *
-     * @param filename name of substitution file
-     * @param patterns array of patterns
-     * @param subs     array of substitution values
-     * @return number of patterns and substitutions read
-     */
-    private int readSubstitutions(String filename, Pattern[] patterns, String[] subs) {
-        int subCount = 0;
-        try {
-            // Open the file that is the first
-            // command line parameter
-            File file = new File(filename);
-            if (file.exists()) {
-                try (FileInputStream stream = new FileInputStream(filename)) {
-                    subCount = readSubstitutionsFromInputStream(stream, patterns, subs);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error:", e);
-        }
-        return (subCount);
+        return gender.process(input);
     }
 
     /**

@@ -1,0 +1,74 @@
+package org.goldrenard.jb.parser;
+
+import org.apache.commons.lang3.StringUtils;
+import org.goldrenard.jb.Bot;
+import org.goldrenard.jb.model.Substitution;
+import org.goldrenard.jb.parser.base.CollectionResource;
+import org.goldrenard.jb.utils.Utilities;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class SubstitutionResource extends CollectionResource<Substitution> {
+
+    private final static Pattern ENTRY_PATTERN = Pattern.compile("\"(.*?)\",\"(.*?)\"", Pattern.DOTALL);
+
+    private final Bot bot;
+
+    public SubstitutionResource(Bot bot) {
+        this.bot = bot;
+    }
+
+    @Override
+    public int read(String filePath) {
+        Utilities.readFileLines(filePath)
+                .stream()
+                .filter(StringUtils::isNotEmpty)
+                .forEach(e -> {
+                    if (size() < bot.getConfiguration().getMaxSubstitutions()) {
+                        Substitution substitution = parse(e);
+                        if (substitution != null) {
+                            add(substitution);
+                        }
+                    }
+                });
+        return size();
+    }
+
+    /**
+     * Apply a sequence of subsitutions to an input string
+     *
+     * @param request  input request
+     * @return result of applying substitutions to input
+     */
+    public String process(String request) {
+        String result = " " + request + " ";
+        try {
+            for (Substitution substitution : this) {
+                Matcher matcher = substitution.getPattern().matcher(result);
+                if (matcher.find()) {
+                    result = matcher.replaceAll(substitution.getSubstitution());
+                }
+            }
+            while (result.contains("  ")) {
+                result = result.replace("  ", " ");
+            }
+            result = result.trim();
+        } catch (Exception e) {
+            log.error("Request {} Result {}", request, result, e);
+        }
+        return result.trim();
+    }
+
+    private Substitution parse(String input) {
+        Substitution substitution = null;
+        Matcher matcher = ENTRY_PATTERN.matcher(input);
+        if (matcher.find()) {
+            substitution = new Substitution();
+            String quotedPattern = Pattern.quote(matcher.group(1));
+            substitution.setSubstitution(matcher.group(2));
+            substitution.setPattern(Pattern.compile(quotedPattern, Pattern.CASE_INSENSITIVE));
+        }
+        return substitution;
+    }
+}
