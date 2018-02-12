@@ -3,12 +3,23 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.goldrenard</groupId>
-    <artifactId>ab</artifactId>
+    <artifactId>jb</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
 
-    <name>Program AB</name>
-    <description>Program AB is the reference implementation of the AIML 2.0 draft specification. AIML is a widely adopted standard for creating chat bots and mobile virtual assistants like ALICE, Mitsuku, English Tutor, The Professor, S.U.P.E.R. and many more.</description>
+    <name>Program JB</name>
+    <description>
+        This is a fork of Program AB — the reference implementation of the AIML 2.0 draft specification.
+        AIML is a widely adopted standard for creating chat bots and mobile virtual assistants like ALICE, Mitsuku,
+        English Tutor, The Professor, S.U.P.E.R. and many more.
+
+        Program AB was developed by Richard Wallace (contact info@alicebot.org) and first released in January, 2013.
+        Following in the tradition of naming AIML interpreters after letters of the alphabet (Program B, Program D,
+        Program N, Program O etc.), the name "AB" is intended to suggest a fresh start with AIML 2.0.
+
+        This project is called JB because it is originally developed for J uniperBot Discord Bot,
+        but keeps full abstraction so it can be used anywhere.
+    </description>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>
