@@ -552,7 +552,7 @@ public class AIMLProcessor {
                 log.trace("Set var {} to {} in {}", varName, value, ps.getLeaf().getCategory().inputThatTopic());
             }
         }
-        if (ps.getChatSession().getBot().getPronounSet().contains(predicateName)) {
+        if (ps.getChatSession().getBot().getPronouns().contains(predicateName)) {
             result = predicateName;
         }
         if (log.isTraceEnabled()) {

@@ -21,14 +21,13 @@ package org.goldrenard.jb.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.configuration.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -36,6 +35,7 @@ import java.util.regex.Pattern;
  */
 @Getter
 @Setter
+@ToString
 public class AIMLSet extends HashSet<String> implements NamedEntity {
 
     private static final Pattern DIGITS_PATTERN = Pattern.compile("[0-9]+");
@@ -49,8 +49,8 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
     private String host; // for external sets
     private String botId; // for external sets
     private boolean external = false;
-    private HashSet<String> inCache = new HashSet<>();
-    private HashSet<String> outCache = new HashSet<>();
+    private Set<String> inCache = new HashSet<>();
+    private Set<String> outCache = new HashSet<>();
 
     /**
      * constructor

@@ -27,6 +27,8 @@ import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.*;
 import org.goldrenard.jb.model.Properties;
 import org.goldrenard.jb.parser.MapsResource;
+import org.goldrenard.jb.parser.PronounsResource;
+import org.goldrenard.jb.parser.base.CollectionResource;
 import org.goldrenard.jb.parser.base.NamedResource;
 import org.goldrenard.jb.parser.SetsResource;
 import org.goldrenard.jb.utils.IOUtils;
@@ -67,7 +69,7 @@ public class Bot {
 
     private NamedResource<AIMLMap> maps = new MapsResource(this);
 
-    private HashSet<String> pronounSet = new HashSet<>();
+    private CollectionResource<String> pronouns = new PronounsResource();
 
     private String rootPath;
     private String aimlifPath;
@@ -115,7 +117,10 @@ public class Bot {
             log.debug("Loaded {} map elements.", count);
         }
 
-        this.pronounSet = getPronouns();
+        count = pronouns.read(configPath);
+        if (log.isDebugEnabled()) {
+            log.debug("Loaded {} pronouns.", count);
+        }
 
         Date aimlDate = new Date(new File(aimlPath).lastModified());
         Date aimlIFDate = new Date(new File(aimlifPath).lastModified());
@@ -167,18 +172,6 @@ public class Bot {
         configPath = botNamePath + "/config";
         setsPath = botNamePath + "/sets";
         mapsPath = botNamePath + "/maps";
-    }
-
-    private HashSet<String> getPronouns() {
-        HashSet<String> pronounSet = new HashSet<>();
-        String pronouns = Utilities.getFile(configPath + "/pronouns.txt");
-        String[] splitPronouns = pronouns.split("\n");
-        for (String p : splitPronouns) {
-            if (p.length() > 0) {
-                pronounSet.add(p);
-            }
-        }
-        return pronounSet;
     }
 
     /**

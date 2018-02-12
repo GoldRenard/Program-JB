@@ -124,9 +124,7 @@ public class Verbs {
         // Do, Did, Done, Does, Doing
         // be, was, been, is, being
 
-        String irrFile = Utilities.getFile("c:/ab/data/irrverbs.txt");
-        String[] triples = irrFile.split("\n");
-        for (String x : triples) {
+        for (String x : Utilities.readFileLines("c:/ab/data/irrverbs.txt")) {
             x = x.toLowerCase();
             String[] triple = x.split(",");
             if (triple.length == 5) {
@@ -142,9 +140,7 @@ public class Verbs {
 
     public static void makeVerbSetsMaps(Bot bot) {
         getIrregulars();
-        String verbFile = Utilities.getFile("c:/ab/data/verb300.txt");
-        String[] verbs = verbFile.split("\n");
-        allVerbs.addAll(Arrays.asList(verbs));
+        allVerbs.addAll(Utilities.readFileLines("c:/ab/data/verb300.txt"));
         AIMLSet be = new AIMLSet("be", bot);
         AIMLSet is = new AIMLSet("is", bot);
         AIMLSet was = new AIMLSet("was", bot);

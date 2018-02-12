@@ -66,7 +66,7 @@ public class MapsResource extends NamedResource<AIMLMap> {
     public void write(AIMLMap resource) {
         log.info("Writing AIML Map {}", resource.getName());
 
-        List<String> lines = null;
+        List<String> lines;
         if (resource.isExternal()) {
             lines = Collections.singletonList(String.format("external:%s:%s", resource.getHost(), resource.getBotId()));
         } else {

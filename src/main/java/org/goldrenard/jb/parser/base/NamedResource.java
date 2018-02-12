@@ -2,7 +2,6 @@ package org.goldrenard.jb.parser.base;
 
 import org.apache.commons.io.FilenameUtils;
 import org.goldrenard.jb.model.NamedEntity;
-import org.goldrenard.jb.parser.MapsResource;
 import org.goldrenard.jb.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,16 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 
-public abstract class NamedResource<T extends NamedEntity> implements ParsedResource<T>, Map<String, T> {
+public abstract class NamedResource<T extends NamedEntity> extends HashMap<String, T> implements ParsedResource<T>, Map<String, T> {
 
-    private static final Logger log = LoggerFactory.getLogger(MapsResource.class);
-
-    private Map<String, T> data = new HashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(NamedResource.class);
 
     private final String resourceExtension;
 
     protected NamedResource(String resourceExtension) {
-        Objects.nonNull(resourceExtension);
+        Objects.requireNonNull(resourceExtension, "Resource extension is required");
         this.resourceExtension = resourceExtension;
     }
 
@@ -63,63 +60,13 @@ public abstract class NamedResource<T extends NamedEntity> implements ParsedReso
 
     protected abstract T load(String resourceName, File file);
 
-    @Override
-    public int size() {
-        return data.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return data.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return data.containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return data.containsValue(value);
-    }
-
-    @Override
-    public T get(Object key) {
-        return data.get(key);
-    }
-
-    @Override
-    public T put(String key, T value) {
-        return data.put(key, value);
-    }
-
-    @Override
-    public T remove(Object key) {
-        return data.remove(key);
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ? extends T> m) {
-        data.putAll(m);
-    }
-
-    @Override
-    public void clear() {
-        data.clear();
-    }
-
-    @Override
-    public Set<String> keySet() {
-        return data.keySet();
-    }
-
-    @Override
-    public Collection<T> values() {
-        return data.values();
-    }
-
-    @Override
-    public Set<Entry<String, T>> entrySet() {
-        return data.entrySet();
+    public void write(Collection<T> resources) {
+        for (T resource : resources) {
+            try {
+                write(resource);
+            } catch (Exception e) {
+                log.error("Could not write resource {}", resource);
+            }
+        }
     }
 }

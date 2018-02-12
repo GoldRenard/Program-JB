@@ -19,15 +19,15 @@
 */
 package org.goldrenard.jb.utils;
 
+import org.apache.commons.io.FileUtils;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.configuration.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Utilities {
 
@@ -67,52 +67,20 @@ public class Utilities {
         return new HashSet<>(Arrays.asList(strings));
     }
 
-    public static String getFileFromInputStream(InputStream in) {
-        String strLine;
-        StringBuilder contents = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            while ((strLine = reader.readLine()) != null) {
-                if (!strLine.startsWith(Constants.text_comment_mark)) {
-                    if (strLine.length() != 0) {
-                        contents.append(strLine);
-                    }
-                    contents.append("\n");
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return contents.toString().trim();
-    }
-
-    public static String getFile(String filename) {
+    public static List<String> readFileLines(String filename) {
         try {
             File file = new File(filename);
             if (file.exists()) {
-                try (FileInputStream stream = new FileInputStream(filename)) {
-                    return getFileFromInputStream(stream);
-                }
+                List<String> lines = FileUtils.readLines(file, "UTF-8");
+                return lines.stream()
+                        .filter(e -> !e.startsWith(Constants.text_comment_mark))
+                        .map(String::trim)
+                        .collect(Collectors.toList());
             }
         } catch (Exception e) {
             log.error("Error: ", e);
         }
-        return "";
-    }
-
-    public static String getCopyrightFromInputStream(InputStream in) {
-        StringBuilder copyright = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            String strLine;
-            while ((strLine = reader.readLine()) != null) {
-                if (strLine.length() != 0) {
-                    copyright.append("<!-- ").append(strLine).append(" -->");
-                }
-                copyright.append("\n");
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return copyright.toString();
+        return Collections.emptyList();
     }
 
     public static String getCopyright(Bot bot, String AIMLFilename) {
@@ -120,12 +88,8 @@ public class Utilities {
         String year = CalendarUtils.year();
         String date = CalendarUtils.date();
         try {
-            copyright = getFile(bot.getConfigPath() + "/copyright.txt");
-            String[] splitCopyright = copyright.split("\n");
-            copyright = "";
-
             StringBuilder builder = new StringBuilder();
-            for (String part : splitCopyright) {
+            for (String part : readFileLines(bot.getConfigPath() + "/copyright.txt")) {
                 builder.append("<!-- ").append(part).append(" -->\n");
             }
             copyright = builder.toString();

@@ -21,6 +21,7 @@ package org.goldrenard.jb.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.configuration.Constants;
@@ -39,6 +40,7 @@ import java.util.HashMap;
  */
 @Getter
 @Setter
+@ToString
 public class AIMLMap extends HashMap<String, String> implements NamedEntity {
 
     private final Bot bot;
