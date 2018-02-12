@@ -507,7 +507,7 @@ public class AIMLProcessor {
         if (mapName == null) {
             result = "<map>" + contents + "</map>"; // this is an OOB map tag (no attribute)
         } else {
-            AIMLMap map = ps.getChatSession().getBot().getMapMap().get(mapName);
+            AIMLMap map = ps.getChatSession().getBot().getMaps().get(mapName);
             if (map != null) {
                 result = map.get(contents.toUpperCase());
             }

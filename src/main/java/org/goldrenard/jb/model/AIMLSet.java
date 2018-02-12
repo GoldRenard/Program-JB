@@ -20,6 +20,7 @@ package org.goldrenard.jb.model;
 */
 
 import lombok.Getter;
+import lombok.Setter;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.configuration.Constants;
@@ -33,7 +34,9 @@ import java.util.regex.Pattern;
 /**
  * implements AIML Sets
  */
-public class AIMLSet extends HashSet<String> {
+@Getter
+@Setter
+public class AIMLSet extends HashSet<String> implements NamedEntity {
 
     private static final Logger log = LoggerFactory.getLogger(AIMLSet.class);
 
@@ -41,7 +44,6 @@ public class AIMLSet extends HashSet<String> {
 
     private String setName;
 
-    @Getter
     private int maxLength = 1; // there are no empty sets
 
     private String host; // for external sets
@@ -106,59 +108,8 @@ public class AIMLSet extends HashSet<String> {
         }
     }
 
-    private int readAIMLSetFromInputStream(InputStream in, Bot bot) {
-        String strLine;
-        int cnt = 0;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            while ((strLine = reader.readLine()) != null && strLine.length() > 0) {
-                cnt++;
-                //strLine = bot.preProcessor.normalize(strLine).toUpperCase();
-                // assume the set is pre-normalized for faster loading
-                if (strLine.startsWith("external")) {
-                    String[] splitLine = strLine.split(":");
-                    if (splitLine.length >= 4) {
-                        host = splitLine[1];
-                        botId = splitLine[2];
-                        maxLength = Integer.parseInt(splitLine[3]);
-                        isExternal = true;
-                        log.info("Created external set at {} {}", host, botId);
-                    }
-                } else {
-                    strLine = strLine.toUpperCase().trim();
-                    String[] splitLine = strLine.split(" ");
-                    int length = splitLine.length;
-                    if (length > maxLength) {
-                        maxLength = length;
-                    }
-                    add(strLine.trim());
-                }
-            }
-        } catch (Exception e) {
-            log.error("Read error", e);
-        }
-        return cnt;
-    }
-
-    public int readAIMLSet(Bot bot) {
-        int count = 0;
-        String fileName = bot.getSetsPath() + "/" + setName + ".txt";
-        if (log.isTraceEnabled()) {
-            log.trace("Reading AIML Set {}", fileName);
-        }
-        try {
-            // Open the file that is the first
-            // command line parameter
-            File file = new File(fileName);
-            if (file.exists()) {
-                try (FileInputStream fstream = new FileInputStream(fileName)) {
-                    count = readAIMLSetFromInputStream(fstream, bot);
-                }
-            } else {
-                log.warn("{} not found", fileName);
-            }
-        } catch (Exception e) {
-            log.error("Read error", e);
-        }
-        return count;
+    @Override
+    public String getName() {
+        return setName;
     }
 }

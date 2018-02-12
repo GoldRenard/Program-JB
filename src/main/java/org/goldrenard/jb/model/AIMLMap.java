@@ -19,6 +19,8 @@
 */
 package org.goldrenard.jb.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.configuration.Constants;
@@ -35,7 +37,9 @@ import java.util.HashMap;
  * A map is a function from one string set to another.
  * Elements of the domain are called keys and elements of the range are called values.
  */
-public class AIMLMap extends HashMap<String, String> {
+@Getter
+@Setter
+public class AIMLMap extends HashMap<String, String> implements NamedEntity {
 
     private static final Logger log = LoggerFactory.getLogger(AIMLMap.class);
 
@@ -132,64 +136,8 @@ public class AIMLMap extends HashMap<String, String> {
         }
     }
 
-    private int readAIMLMapFromInputStream(InputStream in, Bot bot) {
-        int count = 0;
-        String strLine;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-            while ((strLine = reader.readLine()) != null && strLine.length() > 0) {
-                String[] splitLine = strLine.split(":");
-                if (log.isDebugEnabled()) {
-                    log.debug("AIMLMap line={}", strLine);
-                }
-                if (splitLine.length >= 2) {
-                    count++;
-                    if (strLine.startsWith(Constants.remote_map_key)) {
-                        if (splitLine.length >= 3) {
-                            host = splitLine[1];
-                            botId = splitLine[2];
-                            isExternal = true;
-                            log.info("Created external map at [host={}, botId={}]", host, botId);
-                        }
-                    } else {
-                        String key = splitLine[0].toUpperCase();
-                        String value = splitLine[1];
-                        // assume domain element is already normalized for speedier load
-                        //key = bot.preProcessor.normalize(key).trim();
-                        put(key, value);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return count;
-    }
-
-    /**
-     * read an AIML map for a bot
-     *
-     * @param bot the bot associated with this map.
-     */
-    public int readAIMLMap(Bot bot) {
-        int count = 0;
-        String fileName = bot.getMapsPath() + "/" + mapName + ".txt";
-        if (log.isTraceEnabled()) {
-            log.trace("Reading AIML Map {}", fileName);
-        }
-        try {
-            // Open the file that is the first
-            // command line parameter
-            File file = new File(fileName);
-            if (file.exists()) {
-                try (FileInputStream stream = new FileInputStream(file)) {
-                    count = readAIMLMapFromInputStream(stream, bot);
-                }
-            } else {
-                log.warn("{} not found", fileName);
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return count;
+    @Override
+    public String getName() {
+        return mapName;
     }
 }

@@ -25,6 +25,10 @@ import lombok.Setter;
 import org.goldrenard.jb.configuration.BotConfiguration;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.*;
+import org.goldrenard.jb.model.Properties;
+import org.goldrenard.jb.parser.MapsResource;
+import org.goldrenard.jb.parser.NamedResource;
+import org.goldrenard.jb.parser.SetsResource;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.Timer;
 import org.goldrenard.jb.utils.Utilities;
@@ -32,10 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * Class representing the AIML bot
@@ -62,9 +63,9 @@ public class Bot {
 
     private String name;
 
-    private HashMap<String, AIMLSet> setMap = new HashMap<>();
+    private NamedResource<AIMLSet> sets = new SetsResource(this);
 
-    private HashMap<String, AIMLMap> mapMap = new HashMap<>();
+    private NamedResource<AIMLMap> maps = new MapsResource(this);
 
     private HashSet<String> pronounSet = new HashSet<>();
 
@@ -103,20 +104,18 @@ public class Bot {
         this.preProcessor = new PreProcessor(this);
         this.processor = new AIMLProcessor(this);
         addProperties();
-        int count = addAIMLSets();
+
+        int count = sets.read(setsPath);
         if (log.isDebugEnabled()) {
             log.debug("Loaded {} set elements.", count);
         }
-        count = addAIMLMaps();
+
+        count = maps.read(mapsPath);
         if (log.isDebugEnabled()) {
             log.debug("Loaded {} map elements.", count);
         }
+
         this.pronounSet = getPronouns();
-        this.setMap.put(Constants.natural_number_set_name, new AIMLSet(Constants.natural_number_set_name, this));
-        this.mapMap.put(Constants.map_successor, new AIMLMap(Constants.map_successor, this));
-        this.mapMap.put(Constants.map_predecessor, new AIMLMap(Constants.map_predecessor, this));
-        this.mapMap.put(Constants.map_singular, new AIMLMap(Constants.map_singular, this));
-        this.mapMap.put(Constants.map_plural, new AIMLMap(Constants.map_plural, this));
 
         Date aimlDate = new Date(new File(aimlPath).lastModified());
         Date aimlIFDate = new Date(new File(aimlifPath).lastModified());
@@ -503,84 +502,6 @@ public class Bot {
         return categories;
     }
 
-    /**
-     * Load all AIML Sets
-     */
-    private int addAIMLSets() {
-        int count = 0;
-        Timer timer = new Timer();
-        timer.start();
-        try {
-            // Directory path here
-            String file;
-            File folder = new File(setsPath);
-            if (folder.exists()) {
-                File[] listOfFiles = IOUtils.listFiles(folder);
-                if (log.isTraceEnabled()) {
-                    log.trace("Loading AIML Sets files from {}", setsPath);
-                }
-                for (File listOfFile : listOfFiles) {
-                    if (listOfFile.isFile()) {
-                        file = listOfFile.getName();
-                        if (file.endsWith(".txt") || file.endsWith(".TXT")) {
-                            String setName = file.substring(0, file.length() - ".txt".length());
-                            if (log.isTraceEnabled()) {
-                                log.trace("Read AIML Set {} from {}", setName, file);
-                            }
-                            AIMLSet aimlSet = new AIMLSet(setName, this);
-                            count += aimlSet.readAIMLSet(this);
-                            setMap.put(setName, aimlSet);
-                        }
-                    }
-                }
-            } else {
-                log.warn("addAIMLSets: {} does not exist.", setsPath);
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return count;
-    }
-
-    /**
-     * Load all AIML Maps
-     */
-    private int addAIMLMaps() {
-        int cnt = 0;
-        Timer timer = new Timer();
-        timer.start();
-        try {
-            // Directory path here
-            String file;
-            File folder = new File(mapsPath);
-            if (folder.exists()) {
-                File[] listOfFiles = IOUtils.listFiles(folder);
-                if (log.isTraceEnabled()) {
-                    log.trace("Loading AIML Map files from{}", mapsPath);
-                }
-                for (File listOfFile : listOfFiles) {
-                    if (listOfFile.isFile()) {
-                        file = listOfFile.getName();
-                        if (file.endsWith(".txt") || file.endsWith(".TXT")) {
-                            String mapName = file.substring(0, file.length() - ".txt".length());
-                            if (log.isTraceEnabled()) {
-                                log.trace("Read AIML Map {} from {}", mapName, file);
-                            }
-                            AIMLMap aimlMap = new AIMLMap(mapName, this);
-                            cnt += aimlMap.readAIMLMap(this);
-                            mapMap.put(mapName, aimlMap);
-                        }
-                    }
-                }
-            } else {
-                log.warn("addAIMLMaps: {} does not exist.", mapsPath);
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-        return cnt;
-    }
-
     public void deleteLearnfCategories() {
         ArrayList<Category> learnfCategories = learnfGraph.getCategories();
         deleteLearnCategories(learnfCategories);
@@ -655,7 +576,7 @@ public class Bot {
         for (String x : splitPattern) {
             if (x.startsWith("<SET>")) {
                 String setName = AIMLProcessor.trimTag(x, "SET");
-                AIMLSet set = setMap.get(setName);
+                AIMLSet set = sets.get(setName);
                 x = set != null ? "FOUNDITEM" : "NOTFOUND";
             }
             builder.append(" ").append(x);

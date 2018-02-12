@@ -122,7 +122,7 @@ public class Graphmaster {
 
     private void addSets(String type, Bot bot, Nodemapper node, String filename) {
         String setName = Utilities.tagTrim(type, "SET").toLowerCase();
-        if (bot.getSetMap().containsKey(setName)) {
+        if (bot.getSets().containsKey(setName)) {
             if (node.getSets() == null) {
                 node.setSets(new ArrayList<>());
             }
@@ -578,7 +578,7 @@ public class Graphmaster {
                 log.debug("in Graphmaster.setMatch, setMatch trying type {}", setName);
             }
             Nodemapper nextNode = NodemapperOperator.get(node, "<SET>" + setName.toUpperCase() + "</SET>");
-            AIMLSet aimlSet = bot.getSetMap().get(setName);
+            AIMLSet aimlSet = bot.getSets().get(setName);
             Nodemapper matchedNode;
             Nodemapper bestMatchedNode = null;
             String currentWord = path.getWord();
@@ -717,8 +717,8 @@ public class Graphmaster {
     public Set<String> getVocabulary() {
         vocabulary = new HashSet<>();
         getBrainVocabulary(root);
-        for (String set : bot.getSetMap().keySet()) {
-            vocabulary.addAll(bot.getSetMap().get(set));
+        for (String set : bot.getSets().keySet()) {
+            vocabulary.addAll(bot.getSets().get(set));
         }
         return vocabulary;
     }
