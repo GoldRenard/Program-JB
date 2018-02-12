@@ -43,7 +43,8 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
 
     private static final Logger log = LoggerFactory.getLogger(AIMLMap.class);
 
-    private String mapName;
+    @Getter
+    private String name;
     private String host;    // for external maps
     private String botId;   // for external maps
     private boolean isExternal = false;
@@ -57,7 +58,7 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
     public AIMLMap(String name, Bot bot) {
         super();
         this.bot = bot;
-        this.mapName = name;
+        this.name = name;
     }
 
     /**
@@ -68,29 +69,29 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
      */
     public String get(String key) {
         String value;
-        if (mapName.equals(Constants.map_successor)) {
+        if (name.equals(Constants.map_successor)) {
             try {
                 int number = Integer.parseInt(key);
                 return String.valueOf(number + 1);
             } catch (Exception e) {
                 return Constants.default_map;
             }
-        } else if (mapName.equals(Constants.map_predecessor)) {
+        } else if (name.equals(Constants.map_predecessor)) {
             try {
                 int number = Integer.parseInt(key);
                 return String.valueOf(number - 1);
             } catch (Exception e) {
                 return Constants.default_map;
             }
-        } else if (mapName.equals("singular")) {
+        } else if (name.equals("singular")) {
             return Inflector.getInstance().singularize(key).toLowerCase();
-        } else if (mapName.equals("plural")) {
+        } else if (name.equals("plural")) {
             return Inflector.getInstance().pluralize(key).toLowerCase();
         } else if (isExternal && bot.getConfiguration().isEnableExternalMaps()) {
             //String[] split = key.split(" ");
-            String query = mapName.toUpperCase() + " " + key;
+            String query = name.toUpperCase() + " " + key;
             String response = Sraix.sraix(null, bot, query, Constants.default_map, null, host, botId, null, "0");
-            log.info("External {}({})={}" + response, mapName, key, response);
+            log.info("External {}({})={}" + response, name, key, response);
             value = response;
         } else {
             value = super.get(key);
@@ -116,28 +117,5 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
             log.debug("AIMLMap put {}={}", key, value);
         }
         return super.put(key, value);
-    }
-
-    public void writeAIMLMap() {
-        log.info("Writing AIML Map {}", mapName);
-        try (FileWriter stream = new FileWriter(bot.getMapsPath() + "/" + mapName + ".txt")) {
-            try (BufferedWriter out = new BufferedWriter(stream)) {
-                for (String p : this.keySet()) {
-                    p = p.trim();
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}-->{}", p, this.get(p));
-                    }
-                    out.write(p + ":" + this.get(p).trim());
-                    out.newLine();
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error: ", e);
-        }
-    }
-
-    @Override
-    public String getName() {
-        return mapName;
     }
 }

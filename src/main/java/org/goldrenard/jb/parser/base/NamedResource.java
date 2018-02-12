@@ -1,7 +1,8 @@
-package org.goldrenard.jb.parser;
+package org.goldrenard.jb.parser.base;
 
 import org.apache.commons.io.FilenameUtils;
 import org.goldrenard.jb.model.NamedEntity;
+import org.goldrenard.jb.parser.MapsResource;
 import org.goldrenard.jb.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

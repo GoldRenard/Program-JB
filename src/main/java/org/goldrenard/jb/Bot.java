@@ -27,7 +27,7 @@ import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.*;
 import org.goldrenard.jb.model.Properties;
 import org.goldrenard.jb.parser.MapsResource;
-import org.goldrenard.jb.parser.NamedResource;
+import org.goldrenard.jb.parser.base.NamedResource;
 import org.goldrenard.jb.parser.SetsResource;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.Timer;

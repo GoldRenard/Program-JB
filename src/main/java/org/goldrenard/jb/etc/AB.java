@@ -524,8 +524,8 @@ public class AB {
             AIMLSet difference = new AIMLSet("difference", bot);
             difference.addAll(testSet);
             difference.removeAll(passed);
-            difference.writeAIMLSet();
-            passed.writeAIMLSet();
+            bot.getSets().write(difference);
+            bot.getSets().write(passed);
         } else if (textLine.equals("a")) {
             template = alicetemplate;
             String filename;

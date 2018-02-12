@@ -42,7 +42,8 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
 
     private static final Pattern DIGITS_PATTERN = Pattern.compile("[0-9]+");
 
-    private String setName;
+    @Getter
+    private String name;
 
     private int maxLength = 1; // there are no empty sets
 
@@ -61,8 +62,8 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
     public AIMLSet(String name, Bot bot) {
         super();
         this.bot = bot;
-        this.setName = name.toLowerCase();
-        if (setName.equals(Constants.natural_number_set_name)) {
+        this.name = name.toLowerCase();
+        if (name.equals(Constants.natural_number_set_name)) {
             maxLength = 1;
         }
     }
@@ -79,7 +80,7 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
             if (split.length > maxLength) {
                 return false;
             }
-            String query = Constants.set_member_string + setName.toUpperCase() + " " + s;
+            String query = Constants.set_member_string + name.toUpperCase() + " " + s;
             String response = Sraix.sraix(null, bot, query, "false", null, host, botId, null, "0");
             if ("true".equals(response)) {
                 inCache.add(s);
@@ -88,28 +89,9 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
                 outCache.add(s);
                 return false;
             }
-        } else if (setName.equals(Constants.natural_number_set_name)) {
+        } else if (name.equals(Constants.natural_number_set_name)) {
             return DIGITS_PATTERN.matcher(s).matches();
         }
         return super.contains(s);
-    }
-
-    public void writeAIMLSet() {
-        log.info("Writing AIML Set {}", setName);
-        try (FileWriter stream = new FileWriter(bot.getSetsPath() + "/" + setName + ".txt")) {
-            try (BufferedWriter out = new BufferedWriter(stream)) {
-                for (String p : this) {
-                    out.write(p.trim());
-                    out.newLine();
-                }
-            }
-        } catch (Exception e) {
-            log.error("Write error", e);
-        }
-    }
-
-    @Override
-    public String getName() {
-        return setName;
     }
 }

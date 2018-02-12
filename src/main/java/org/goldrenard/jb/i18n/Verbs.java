@@ -179,18 +179,19 @@ public class Verbs {
             be2being.put(beForm, beingForm);
             being2be.put(beingForm, beForm);
         }
-        be.writeAIMLSet();
-        is.writeAIMLSet();
-        was.writeAIMLSet();
-        been.writeAIMLSet();
-        being.writeAIMLSet();
-        be2is.writeAIMLMap();
-        is2be.writeAIMLMap();
-        be2was.writeAIMLMap();
-        was2be.writeAIMLMap();
-        be2been.writeAIMLMap();
-        been2be.writeAIMLMap();
-        be2being.writeAIMLMap();
-        being2be.writeAIMLMap();
+        bot.getSets().write(be);
+        bot.getSets().write(is);
+        bot.getSets().write(was);
+        bot.getSets().write(been);
+        bot.getSets().write(being);
+
+        bot.getMaps().write(be2is);
+        bot.getMaps().write(is2be);
+        bot.getMaps().write(be2was);
+        bot.getMaps().write(was2be);
+        bot.getMaps().write(be2been);
+        bot.getMaps().write(been2be);
+        bot.getMaps().write(be2being);
+        bot.getMaps().write(being2be);
     }
 }

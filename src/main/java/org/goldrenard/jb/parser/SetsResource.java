@@ -4,20 +4,25 @@ import org.apache.commons.io.FileUtils;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.AIMLSet;
+import org.goldrenard.jb.parser.base.NamedResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.Map;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SetsResource extends NamedResource<AIMLSet> {
+
+    private static final String SETS_EXTENSION = "txt";
 
     private static final Logger log = LoggerFactory.getLogger(SetsResource.class);
 
     private final Bot bot;
 
     public SetsResource(Bot bot) {
-        super("txt");
+        super(SETS_EXTENSION);
         this.bot = bot;
         put(Constants.natural_number_set_name, new AIMLSet(Constants.natural_number_set_name, bot));
     }
@@ -29,7 +34,7 @@ public class SetsResource extends NamedResource<AIMLSet> {
             for (String line : FileUtils.readLines(file, "UTF-8")) {
                 // strLine = bot.getPreProcessor().normalize(strLine).toUpperCase();
                 // assume the set is pre-normalized for faster loading
-                if (line.startsWith("external")) {
+                if (line.startsWith(Constants.remote_set_key)) {
                     String[] splitLine = line.split(":");
                     if (splitLine.length >= 4) {
                         aimlSet.setHost(splitLine[1]);
@@ -55,7 +60,20 @@ public class SetsResource extends NamedResource<AIMLSet> {
     }
 
     @Override
-    public int write( Map<String, AIMLSet> resources) {
-        return 0;
+    public void write(AIMLSet resource) {
+        log.info("Writing AIML Set {}", resource.getName());
+
+        List<String> lines = resource.isExternal()
+                ? Collections.singletonList(String.format("external:%s:%s:%s",
+                resource.getHost(), resource.getBotId(), resource.getMaxLength()))
+                : resource.stream().map(String::trim).collect(Collectors.toList());
+
+        String fileName = bot.getSetsPath() + "/" + resource.getName() + "." + SETS_EXTENSION;
+
+        try {
+            FileUtils.writeLines(new File(fileName), "UTF-8", lines);
+        } catch (Exception e) {
+            log.error("Error: ", e);
+        }
     }
 }
