@@ -41,7 +41,7 @@
         <repository>
             <id>bintray-goldrenard-program-ab</id>
             <name>goldrenard-program-ab</name>
-            <url>https://api.bintray.com/maven/goldrenard/program-ab/program-ab/;publish=1</url>
+            <url>https://api.bintray.com/maven/goldrenard/maven/Program-JB/;publish=1</url>
         </repository>
     </distributionManagement>
 
