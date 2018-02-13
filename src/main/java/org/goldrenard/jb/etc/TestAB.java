@@ -19,6 +19,7 @@ package org.goldrenard.jb.etc;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.core.Bot;
 import org.goldrenard.jb.core.Chat;
+import org.goldrenard.jb.model.Request;
 import org.goldrenard.jb.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class TestAB {
                         log.trace("STATE={}:THAT={}:TOPIC={}", textLine, chatSession.getThatHistory().get(0).get(0),
                                 chatSession.getPredicates().get("topic"));
                     }
-                    String response = chatSession.multisentenceRespond(textLine);
+                    String response = chatSession.multisentenceRespond(Request.builder().input(textLine).build());
                     while (response.contains("&lt;")) {
                         response = response.replace("&lt;", "<");
                     }

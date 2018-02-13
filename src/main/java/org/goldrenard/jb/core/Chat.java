@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.History;
 import org.goldrenard.jb.model.Predicates;
+import org.goldrenard.jb.model.Request;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;
@@ -72,10 +73,10 @@ public class Chat {
         this.tripleStore = new TripleStore("anon", bot);
         this.doWrites = doWrites;
         int maxHistory = bot.getConfiguration().getMaxHistory();
-        thatHistory = new History<>(maxHistory, "that");
-        requestHistory = new History<>(maxHistory, "request");
-        responseHistory = new History<>(maxHistory, "response");
-        inputHistory = new History<>(maxHistory, "input");
+        this.thatHistory = new History<>(maxHistory, "that");
+        this.requestHistory = new History<>(maxHistory, "request");
+        this.responseHistory = new History<>(maxHistory, "response");
+        this.inputHistory = new History<>(maxHistory, "input");
         History<String> contextThatHistory = new History<>(maxHistory);
         contextThatHistory.add(Constants.default_that);
         this.thatHistory.add(contextThatHistory);
@@ -139,9 +140,9 @@ public class Chat {
     /**
      * Chat session terminal interaction
      */
-    public void chat() {
+    private void chat() {
         try {
-            String request = "SET PREDICATES";
+            String request = "SET PREDICATES"; // TODO why it is executed here?
             String response = multisentenceRespond(request);
             while (!"quit".equals(request)) {
                 log.info("Human: ");
@@ -163,7 +164,7 @@ public class Chat {
      * @param contextThatHistory history of "that" values for this request/response interaction
      * @return bot's reply
      */
-    private String respond(String input, String that, String topic, History<String> contextThatHistory) {
+    private String respond(Request request, String input, String that, String topic, History<String> contextThatHistory) {
         boolean repetition = true;
         for (int i = 0; i < bot.getConfiguration().getRepetitionCount(); i++) {
             if (inputHistory.get(i) == null || !input.toUpperCase().equals(inputHistory.get(i).toUpperCase())) {
@@ -180,7 +181,7 @@ public class Chat {
 
         String response;
 
-        response = bot.getProcessor().respond(input, that, topic, this);
+        response = bot.getProcessor().respond(request, input, that, topic, this);
         String normResponse = bot.getPreProcessor().normalize(response);
         if (bot.getConfiguration().isJpTokenize()) {
             normResponse = JapaneseUtils.tokenizeSentence(normResponse);
@@ -192,7 +193,7 @@ public class Chat {
             }
             contextThatHistory.add(s);
         }
-        return response.trim() + " ";
+        return response.trim();
     }
 
     /**
@@ -202,10 +203,14 @@ public class Chat {
      * @param contextThatHistory history of "that" values for this request/response interaction
      * @return bot's reply
      */
-    private String respond(String input, History<String> contextThatHistory) {
+    private String respond(Request request, String input, History<String> contextThatHistory) {
         History hist = thatHistory.get(0);
         String that = hist != null ? hist.getString(0) : Constants.default_that;
-        return respond(input, that, predicates.get("topic"), contextThatHistory);
+        return respond(request, input, that, predicates.get("topic"), contextThatHistory);
+    }
+
+    public String multisentenceRespond(String request) {
+        return multisentenceRespond(Request.builder().input(request).build());
     }
 
     /**
@@ -214,26 +219,25 @@ public class Chat {
      * @param request client's multiple-sentence input
      * @return Response
      */
-    public String multisentenceRespond(String request) {
+    public String multisentenceRespond(Request request) {
         StringBuilder response = new StringBuilder();
         try {
-            String normalized = bot.getPreProcessor().normalize(request);
+            String normalized = bot.getPreProcessor().normalize(request.getInput());
             if (bot.getConfiguration().isJpTokenize()) {
                 normalized = JapaneseUtils.tokenizeSentence(normalized);
             }
             String sentences[] = bot.getPreProcessor().sentenceSplit(normalized);
             History<String> contextThatHistory = new History<>(bot.getConfiguration().getMaxHistory(), "contextThat");
             for (String sentence : sentences) {
-                String reply = respond(sentence, contextThatHistory);
-                response.append(" ").append(reply);
+                String reply = respond(request, sentence, contextThatHistory);
+                response.append(" ").append(reply.trim());
             }
 
             String result = response.toString();
-            requestHistory.add(request);
+            requestHistory.add(request.getInput());
             responseHistory.add(result);
             thatHistory.add(contextThatHistory);
-            result = result.replaceAll("[\n]+", "\n");
-            result = result.trim();
+            result = result.replaceAll("[\n]+", "\n").trim();
             if (doWrites) {
                 bot.writeLearnfIFCategories();
             }

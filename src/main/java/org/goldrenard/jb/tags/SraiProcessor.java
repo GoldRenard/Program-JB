@@ -67,8 +67,16 @@ public class SraiProcessor extends BaseTagProcessor {
             if (log.isTraceEnabled()) {
                 log.trace("Srai returned {}:{}, that=", leaf.getCategory().inputThatTopic(), leaf.getCategory().getTemplate());
             }
-            response = ps.getProcessor().evalTemplate(leaf.getCategory().getTemplate(), new ParseState(ps.getProcessor(),
-                    ps.getDepth() + 1, ps.getChatSession(), ps.getInput(), ps.getThat(), topic, leaf, sraiCount));
+            response = ps.getProcessor().evalTemplate(leaf.getCategory().getTemplate(), new ParseState(
+                    ps.getRequest(),
+                    ps.getProcessor(),
+                    ps.getDepth() + 1,
+                    ps.getChatSession(),
+                    ps.getInput(),
+                    ps.getThat(),
+                    topic,
+                    leaf,
+                    sraiCount));
         } catch (Exception e) {
             log.error("Error: ", e);
         }

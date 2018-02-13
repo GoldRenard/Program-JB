@@ -14,26 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Program JB. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.goldrenard.jb.tags;
+package org.goldrenard.jb.model;
 
-import org.goldrenard.jb.model.ParseState;
-import org.goldrenard.jb.tags.base.BaseTagProcessor;
-import org.w3c.dom.Node;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Singular;
 
-public class SrProcessor extends BaseTagProcessor {
+import java.util.Map;
 
-    public SrProcessor() {
-        super("sr");
-    }
+/**
+ * User request to bot
+ */
+@Getter
+@Setter
+@Builder
+public class Request {
 
-    @Override
-    public String eval(Node node, ParseState ps) {
-        return ps.getProcessor().respond(
-                ps.getRequest(),
-                ps.getStarBindings().getInputStars().star(0),
-                ps.getThat(),
-                ps.getTopic(),
-                ps.getChatSession(),
-                ps.getSraiCount());
-    }
+    private final String input;
+
+    /**
+     * This properties can be used in AIML {{{@code <bot name="property"/>}}} as well as in custom Tag Processor,
+     * see {@link ParseState#getRequest()}
+     */
+    @Singular
+    private final Map<String, Object> attributes;
 }

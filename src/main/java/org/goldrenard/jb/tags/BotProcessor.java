@@ -36,7 +36,15 @@ public class BotProcessor extends BaseTagProcessor {
         String result = Constants.default_property;
         String propertyName = getAttributeOrTagValue(node, ps, "name");
         if (propertyName != null) {
-            result = ps.getChatSession().getBot().getProperties().get(propertyName).trim();
+            if (ps.getRequest() != null && ps.getRequest().getAttributes() != null) {
+                Object attribute = ps.getRequest().getAttributes().get(propertyName);
+                if (attribute != null) {
+                    result = String.valueOf(attribute);
+                }
+            }
+            if (result == null) {
+                result = ps.getChatSession().getBot().getProperties().get(propertyName).trim();
+            }
         }
         return result;
     }

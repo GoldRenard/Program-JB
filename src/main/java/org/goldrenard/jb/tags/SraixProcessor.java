@@ -44,7 +44,10 @@ public class SraixProcessor extends BaseTagProcessor {
         String limit = getAttributeOrTagValue(node, ps, "limit");
         String defaultResponse = getAttributeOrTagValue(node, ps, "default");
         String evalResult = evalTagContent(node, ps, attributeNames);
-        return Sraix.sraix(ps.getChatSession(), ps.getChatSession().getBot(),
+        return Sraix.sraix(
+                ps.getRequest(),
+                ps.getChatSession(),
+                ps.getChatSession().getBot(),
                 evalResult, defaultResponse, hint, host, botid, null, limit);
     }
 }

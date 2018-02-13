@@ -21,6 +21,7 @@ import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.Category;
 import org.goldrenard.jb.model.Nodemapper;
 import org.goldrenard.jb.model.ParseState;
+import org.goldrenard.jb.model.Request;
 import org.goldrenard.jb.tags.*;
 import org.goldrenard.jb.tags.base.AIMLTagProcessor;
 import org.goldrenard.jb.utils.DomUtils;
@@ -236,14 +237,15 @@ public class AIMLProcessor {
     /**
      * generate a bot response to a single sentence input.
      *
+     * @param request     user's original request
      * @param input       the input sentence.
      * @param that        the bot's last sentence.
      * @param topic       current topic.
      * @param chatSession current client session.
      * @return bot's response.
      */
-    public String respond(String input, String that, String topic, Chat chatSession) {
-        return respond(input, that, topic, chatSession, 0);
+    public String respond(Request request, String input, String that, String topic, Chat chatSession) {
+        return respond(request, input, that, topic, chatSession, 0);
     }
 
     /**
@@ -256,7 +258,7 @@ public class AIMLProcessor {
      * @param srCnt       number of <srai> activations.
      * @return bot's reply.
      */
-    public String respond(String input, String that, String topic, Chat chatSession, int srCnt) {
+    public String respond(Request request, String input, String that, String topic, Chat chatSession, int srCnt) {
         if (log.isTraceEnabled()) {
             log.trace("input: {}, that: {}, topic: {}, chatSession: {}, srCnt: {}", input, that, topic, chatSession, srCnt);
         }
@@ -268,10 +270,9 @@ public class AIMLProcessor {
         try {
             Nodemapper leaf = chatSession.getBot().getBrain().match(input, that, topic);
             if (leaf == null) {
-                return (response);
+                return response;
             }
-            ParseState ps = new ParseState(this, 0, chatSession, input, that, topic, leaf, srCnt);
-            //chatSession.matchTrace += leaf.category.getTemplate()+"\n";
+            ParseState ps = new ParseState(request,this, 0, chatSession, input, that, topic, leaf, srCnt);
             String template = leaf.getCategory().getTemplate();
             response = evalTemplate(template, ps);
             if (log.isTraceEnabled()) {

@@ -16,6 +16,7 @@
  */
 package org.goldrenard.jb.core;
 
+import org.goldrenard.jb.model.Request;
 import org.goldrenard.jb.utils.CalendarUtils;
 import org.goldrenard.jb.utils.NetworkUtils;
 import org.json.JSONArray;
@@ -41,19 +42,19 @@ public class Sraix {
 
     private final static Map<String, String> custIdMap = new ConcurrentHashMap<>();
 
-    public static String sraix(Chat chatSession, Bot bot, String input, String defaultResponse, String hint, String host, String botid, String apiKey, String limit) {
+    public static String sraix(Request request, Chat chatSession, Bot bot, String input, String defaultResponse, String hint, String host, String botid, String apiKey, String limit) {
         String response;
         if (!bot.getConfiguration().isEnableNetworkConnection()) {
             response = sraix_failed;
         } else if (host != null && botid != null) {
             response = sraixPandorabots(input, host, botid);
         } else {
-            response = sraixPannous(input, hint, chatSession);
+            response = sraixPannous(request, input, hint, chatSession);
         }
         log.debug("Sraix: response = {} defaultResponse = {}", response, defaultResponse);
         if (response.equals(sraix_failed)) {
             if (chatSession != null && defaultResponse == null) {
-                response = bot.getProcessor().respond(sraix_failed, "nothing",
+                response = bot.getProcessor().respond(request, sraix_failed, "nothing",
                         "nothing", chatSession);
             } else if (defaultResponse != null) {
                 response = defaultResponse;
@@ -62,7 +63,7 @@ public class Sraix {
         return response;
     }
 
-    public static String sraixPandorabots(String input, String host, String botid) {
+    private static String sraixPandorabots(String input, String host, String botid) {
         String responseContent = pandorabotsRequest(input, host, botid);
         if (responseContent == null) {
             return sraix_failed;
@@ -70,7 +71,7 @@ public class Sraix {
         return pandorabotsResponse(responseContent, host, botid);
     }
 
-    public static String pandorabotsRequest(String input, String host, String botid) {
+    private static String pandorabotsRequest(String input, String host, String botid) {
         try {
             String key = host + ":" + botid;
             String custid = custIdMap.getOrDefault(key, "0");
@@ -115,7 +116,7 @@ public class Sraix {
         return botResponse;
     }
 
-    public static String sraixPannous(String input, String hint, Chat chatSession) {
+    public static String sraixPannous(Request request, String input, String hint, Chat chatSession) {
         try {
             String rawInput = input;
             if (hint == null) {
@@ -220,7 +221,7 @@ public class Sraix {
                 if (hint.equals(sraix_event_hint) && !text.startsWith("<year>")) {
                     return sraix_failed;
                 } else if (text.equals(sraix_failed)) {
-                    return chatSession.getBot().getProcessor().respond(sraix_failed, "nothing", "nothing", chatSession);
+                    return chatSession.getBot().getProcessor().respond(request, sraix_failed, "nothing", "nothing", chatSession);
                 } else {
                     text = text.replace("&#39;", "'");
                     text = text.replace("&apos;", "'");

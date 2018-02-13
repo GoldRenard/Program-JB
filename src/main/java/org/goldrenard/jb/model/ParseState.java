@@ -27,6 +27,7 @@ import org.goldrenard.jb.core.Chat;
 @Getter
 @Setter
 public class ParseState {
+    private final Request request;
     private final AIMLProcessor processor;
     private Nodemapper leaf;
     private String input;
@@ -48,7 +49,8 @@ public class ParseState {
      * @param topic       current topic
      * @param leaf        node containing the category processed
      */
-    public ParseState(AIMLProcessor processor, int depth, Chat chatSession, String input, String that, String topic, Nodemapper leaf, int sraiCount) {
+    public ParseState(Request request, AIMLProcessor processor, int depth, Chat chatSession, String input, String that, String topic, Nodemapper leaf, int sraiCount) {
+        this.request = request;
         this.processor = processor;
         this.chatSession = chatSession;
         this.input = input;

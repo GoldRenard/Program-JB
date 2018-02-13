@@ -84,7 +84,7 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
         } else if (external && bot.getConfiguration().isEnableExternalMaps()) {
             //String[] split = key.split(" ");
             String query = name.toUpperCase() + " " + key;
-            String response = Sraix.sraix(null, bot, query, Constants.default_map, null, host, botId,
+            String response = Sraix.sraix(null, null, bot, query, Constants.default_map, null, host, botId,
                     null, "0");
             value = response;
         } else {

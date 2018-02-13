@@ -76,7 +76,7 @@ public class AIMLSet extends HashSet<String> implements NamedEntity {
                 return false;
             }
             String query = Constants.set_member_string + name.toUpperCase() + " " + s;
-            String response = Sraix.sraix(null, bot, query, "false", null, host, botId, null, "0");
+            String response = Sraix.sraix(null, null, bot, query, "false", null, host, botId, null, "0");
             if ("true".equals(response)) {
                 inCache.add(s);
                 return true;
