@@ -1,10 +1,26 @@
+/*
+ * This file is part of Program JB.
+ *
+ * Program JB is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * Program JB is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with Program JB. If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.goldrenard.jb.configuration;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.apache.commons.lang3.StringUtils;
+import org.goldrenard.jb.tags.base.AIMLTagProcessor;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -65,7 +81,7 @@ public class BotConfiguration {
     private int maxLoops = 10000;
 
     @Builder.Default
-    private String programName = "Program AB 0.0.6.26 beta -- AI Foundation Reference AIML 2.1 implementation";
+    private String programName = "Program JB -- AI Foundation Reference AIML 2.1 implementation";
     @Builder.Default
     private String defaultLanguage = "EN";
     @Builder.Default
@@ -80,6 +96,10 @@ public class BotConfiguration {
     private String pannousLogin = "test-user";
     @Builder.Default
     private LanguageConfiguration language = LanguageConfiguration.builder().build();
+
+    // extensions
+    @Singular
+    private List<AIMLTagProcessor> tagProcessors;
 
     public String getName() {
         return StringUtils.isNotBlank(name) ? name : DEFAULT_NAME;

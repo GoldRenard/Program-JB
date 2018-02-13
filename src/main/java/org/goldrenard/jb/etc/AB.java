@@ -1,29 +1,26 @@
-/* Program AB Reference AIML 2.0 implementation
-        Copyright (C) 2013 ALICE A.I. Foundation
-        Contact: info@alicebot.org
+/*
+ * This file is part of Program JB.
+ *
+ * Program JB is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
 
-        This library is free software; you can redistribute it and/or
-        modify it under the terms of the GNU Library General Public
-        License as published by the Free Software Foundation; either
-        version 2 of the License, or (at your option) any later version.
+ * Program JB is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
 
-        This library is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-        Library General Public License for more details.
-
-        You should have received a copy of the GNU Library General Public
-        License along with this library; if not, write to the
-        Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
-        Boston, MA  02110-1301, USA.
-*/
+ * You should have received a copy of the GNU General Public License
+ * along with Program JB. If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.goldrenard.jb.etc;
 
-import org.goldrenard.jb.Bot;
-import org.goldrenard.jb.Graphmaster;
-import org.goldrenard.jb.NodemapperOperator;
 import org.goldrenard.jb.configuration.BotConfiguration;
 import org.goldrenard.jb.configuration.Constants;
+import org.goldrenard.jb.core.Bot;
+import org.goldrenard.jb.core.Graphmaster;
+import org.goldrenard.jb.core.NodemapperOperator;
 import org.goldrenard.jb.model.AIMLSet;
 import org.goldrenard.jb.model.Category;
 import org.goldrenard.jb.model.Nodemapper;

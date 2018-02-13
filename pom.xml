@@ -5,7 +5,7 @@
     <groupId>org.goldrenard</groupId>
     <artifactId>jb</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
 
     <name>Program JB</name>
     <description>
@@ -17,9 +17,33 @@
         Following in the tradition of naming AIML interpreters after letters of the alphabet (Program B, Program D,
         Program N, Program O etc.), the name "AB" is intended to suggest a fresh start with AIML 2.0.
 
-        This project is called JB because it is originally developed for J uniperBot Discord Bot,
+        This project is called JB because it is originally developed for JuniperBot Discord Bot,
         but keeps full abstraction so it can be used anywhere.
     </description>
+    <url>https://github.com/GoldRenard/Program-JB</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+            <distribution>manual</distribution>
+            <comments>A free, copyleft license for software and other kinds of works</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/GoldRenard/Program-JB</url>
+        <connection>scm:git:git@github.com:GoldRenard/Program-JB.git</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>owner</id>
+            <name>Ilya Egorov / Renard Gold / Caramel</name>
+            <email>goldrenard@gmail.com</email>
+            <timezone>UTC+4</timezone>
+        </developer>
+    </developers>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>
