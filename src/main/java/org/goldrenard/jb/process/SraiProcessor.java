@@ -1,9 +1,9 @@
 package org.goldrenard.jb.process;
 
-import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.model.Nodemapper;
 import org.goldrenard.jb.model.ParseState;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.process.base.BaseNodeProcessor;
 import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;

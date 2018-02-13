@@ -2,6 +2,7 @@ package org.goldrenard.jb.process.base;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.ParseState;
 import org.goldrenard.jb.utils.DomUtils;
 import org.goldrenard.jb.utils.Utilities;
@@ -105,5 +106,36 @@ public abstract class BaseNodeProcessor implements AIMLNodeProcessor {
             log.trace("BaseNodeProcessor.evalTagContent() returning: {}", result);
         }
         return result.toString();
+    }
+
+    /**
+     * get the value of an index attribute and return it as an integer.
+     * if it is not recognized as an integer, return 0
+     *
+     * @param node current XML parse node
+     * @param ps   AIML parse state
+     * @return the the integer intex value
+     */
+    protected int getIndexValue(Node node, ParseState ps) {
+        String value = getAttributeOrTagValue(node, ps, "index");
+        if (value != null) {
+            try {
+                return Integer.parseInt(value) - 1;
+            } catch (Exception e) {
+                log.error("Error: ", e);
+            }
+        }
+        return 0;
+    }
+
+    protected static String firstWord(String sentence) {
+        String content = (sentence == null ? "" : sentence);
+        content = content.trim();
+        if (content.contains(" ")) {
+            return content.substring(0, content.indexOf(" "));
+        } else if (content.length() > 0) {
+            return content;
+        }
+        return Constants.default_list_item;
     }
 }

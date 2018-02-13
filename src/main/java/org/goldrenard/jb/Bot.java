@@ -25,12 +25,11 @@ import lombok.Setter;
 import org.goldrenard.jb.configuration.BotConfiguration;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.*;
-import org.goldrenard.jb.model.Properties;
 import org.goldrenard.jb.parser.MapsResource;
 import org.goldrenard.jb.parser.PronounsResource;
+import org.goldrenard.jb.parser.SetsResource;
 import org.goldrenard.jb.parser.base.CollectionResource;
 import org.goldrenard.jb.parser.base.NamedResource;
-import org.goldrenard.jb.parser.SetsResource;
 import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.utils.IOUtils;
 import org.goldrenard.jb.utils.Timer;
@@ -39,7 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Class representing the AIML bot

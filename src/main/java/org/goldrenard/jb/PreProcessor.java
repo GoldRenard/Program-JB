@@ -73,7 +73,7 @@ public class PreProcessor {
     /**
      * Apply a sequence of subsitutions to an input string
      *
-     * @param request  input request
+     * @param request input request
      * @return result of applying substitutions to input
      */
     private String substitute(SubstitutionResource resource, String request) {

@@ -5,14 +5,15 @@ import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.process.base.BaseNodeProcessor;
 import org.w3c.dom.Node;
 
-public class TextProcessor extends BaseNodeProcessor {
+public class FirstProcessor extends BaseNodeProcessor {
 
-    public TextProcessor(AIMLProcessor processor) {
-        super(processor, "#text");
+    public FirstProcessor(AIMLProcessor processor) {
+        super(processor, "first");
     }
 
     @Override
     public String eval(Node node, ParseState ps) {
-        return node.getNodeValue();
+        String content = evalTagContent(node, ps, null);
+        return firstWord(content);
     }
 }

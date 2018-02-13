@@ -3,7 +3,6 @@ package org.goldrenard.jb;
 import lombok.Getter;
 import lombok.Setter;
 import org.goldrenard.jb.configuration.Constants;
-import org.goldrenard.jb.etc.TestAB;
 import org.goldrenard.jb.model.Clause;
 import org.goldrenard.jb.model.Tuple;
 import org.slf4j.Logger;

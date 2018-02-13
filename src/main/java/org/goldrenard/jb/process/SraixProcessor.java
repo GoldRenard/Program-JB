@@ -1,8 +1,8 @@
 package org.goldrenard.jb.process;
 
-import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.model.ParseState;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.process.base.BaseNodeProcessor;
 import org.goldrenard.jb.utils.Utilities;
 import org.w3c.dom.Node;

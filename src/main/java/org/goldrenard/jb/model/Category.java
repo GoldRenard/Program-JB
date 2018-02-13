@@ -21,10 +21,10 @@ package org.goldrenard.jb.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Graphmaster;
 import org.goldrenard.jb.configuration.Constants;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.utils.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

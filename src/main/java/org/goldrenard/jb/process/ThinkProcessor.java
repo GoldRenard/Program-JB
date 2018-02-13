@@ -5,14 +5,21 @@ import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.process.base.BaseNodeProcessor;
 import org.w3c.dom.Node;
 
-public class CommentProcessor extends BaseNodeProcessor {
+/**
+ * implements {@code <think>} tag
+ * <p>
+ * Evaluate the tag contents but return a blank.
+ * "Think but don't speak."
+ */
+public class ThinkProcessor extends BaseNodeProcessor {
 
-    public CommentProcessor(AIMLProcessor processor) {
-        super(processor, "#comment");
+    public ThinkProcessor(AIMLProcessor processor) {
+        super(processor, "think");
     }
 
     @Override
     public String eval(Node node, ParseState ps) {
+        evalTagContent(node, ps, null);
         return "";
     }
 }

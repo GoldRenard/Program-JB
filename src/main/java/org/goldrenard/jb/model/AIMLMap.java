@@ -26,10 +26,7 @@ import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Sraix;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.i18n.Inflector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.util.HashMap;
 
 /**
@@ -50,6 +47,7 @@ public class AIMLMap extends HashMap<String, String> implements NamedEntity {
     private String host;    // for external maps
     private String botId;   // for external maps
     private boolean external = false;
+
     /**
      * constructor to create a new AIML Map
      *

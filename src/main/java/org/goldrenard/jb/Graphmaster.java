@@ -22,8 +22,8 @@ package org.goldrenard.jb;
 import lombok.Getter;
 import lombok.Setter;
 import org.goldrenard.jb.configuration.Constants;
-import org.goldrenard.jb.utils.Utilities;
 import org.goldrenard.jb.model.*;
+import org.goldrenard.jb.utils.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

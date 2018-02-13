@@ -5,7 +5,10 @@ import org.goldrenard.jb.model.AIMLMap;
 import org.goldrenard.jb.model.AIMLSet;
 import org.goldrenard.jb.utils.Utilities;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class Verbs {
     private static Set<String> es = Utilities.stringSet("sh", "ch", "th", "ss", "x");

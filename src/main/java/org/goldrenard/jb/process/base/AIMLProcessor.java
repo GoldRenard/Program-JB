@@ -19,22 +19,26 @@
 */
 package org.goldrenard.jb.process.base;
 
+import org.apache.commons.lang3.StringUtils;
 import org.goldrenard.jb.Bot;
 import org.goldrenard.jb.Chat;
-import org.goldrenard.jb.TripleStore;
 import org.goldrenard.jb.configuration.Constants;
-import org.goldrenard.jb.model.*;
+import org.goldrenard.jb.model.Category;
+import org.goldrenard.jb.model.Nodemapper;
+import org.goldrenard.jb.model.ParseState;
 import org.goldrenard.jb.process.*;
-import org.goldrenard.jb.utils.*;
-import org.apache.commons.lang3.StringUtils;
+import org.goldrenard.jb.utils.DomUtils;
+import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The core AIML parser and interpreter.
@@ -52,16 +56,50 @@ public class AIMLProcessor {
 
     public AIMLProcessor(Bot bot) {
         this.bot = bot;
+        registerProcessor(new BotProcessor(this));
         registerProcessor(new CommentProcessor(this));
         registerProcessor(new ConditionProcessor(this));
+        registerProcessor(new DateProcessor(this));
+        registerProcessor(new DenormalizeProcessor(this));
+        registerProcessor(new ExplodeProcessor(this));
+        registerProcessor(new FirstProcessor(this));
+        registerProcessor(new FormalProcessor(this));
+        registerProcessor(new GenderProcessor(this));
+        registerProcessor(new IdProcessor(this));
+        registerProcessor(new InputProcessor(this));
+        registerProcessor(new IntervalProcessor(this));
+        registerProcessor(new JavaScriptProcessor(this));
+        registerProcessor(new LearnProcessor(this));
+        registerProcessor(new LowercaseProcessor(this));
         registerProcessor(new MapProcessor(this));
+        registerProcessor(new NormalizeProcessor(this));
+        registerProcessor(new Person2Processor(this));
+        registerProcessor(new PersonProcessor(this));
         registerProcessor(new PredicateProcessor(this));
+        registerProcessor(new ProgramProcessor(this));
         registerProcessor(new RandomProcessor(this));
+        registerProcessor(new RequestProcessor(this));
+        registerProcessor(new ResetLearnProcessor(this));
+        registerProcessor(new ResponseProcessor(this));
+        registerProcessor(new RestProcessor(this));
+        registerProcessor(new SelectProcessor(this));
+        registerProcessor(new SentenceProcessor(this));
+        registerProcessor(new SizeProcessor(this));
         registerProcessor(new SraiProcessor(this));
         registerProcessor(new SraixProcessor(this));
         registerProcessor(new SrProcessor(this));
+        registerProcessor(new StarProcessor(this));
+        registerProcessor(new SystemProcessor(this));
         registerProcessor(new TemplateProcessor(this));
         registerProcessor(new TextProcessor(this));
+        registerProcessor(new ThatProcessor(this));
+        registerProcessor(new ThatStarProcessor(this));
+        registerProcessor(new ThinkProcessor(this));
+        registerProcessor(new TopicStarProcessor(this));
+        registerProcessor(new TripleProcessor(this));
+        registerProcessor(new UniqProcessor(this));
+        registerProcessor(new UppercaseProcessor(this));
+        registerProcessor(new VocabularyProcessor(this));
     }
 
     /**
@@ -248,45 +286,6 @@ public class AIMLProcessor {
         return response;
     }
 
-    /**
-     * capitalizeString:
-     * from http://stackoverflow.com/questions/1892765/capitalize-first-char-of-each-word-in-a-string-java
-     *
-     * @param string the string to capitalize
-     * @return the capitalized string
-     */
-    private static String capitalizeString(String string) {
-        char[] chars = string.toLowerCase().toCharArray();
-        boolean found = false;
-        for (int i = 0; i < chars.length; i++) {
-            if (!found && Character.isLetter(chars[i])) {
-                chars[i] = Character.toUpperCase(chars[i]);
-                found = true;
-            } else if (Character.isWhitespace(chars[i])) {
-                found = false;
-            }
-        }
-        return String.valueOf(chars);
-    }
-
-    /**
-     * explode a string into individual characters separated by one space
-     *
-     * @param input input string
-     * @return exploded string
-     */
-    private static String explode(String input) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            builder.append(" ").append(input.charAt(i));
-        }
-        String result = builder.toString();
-        while (result.contains("  ")) {
-            result = result.replace("  ", " ");
-        }
-        return result.trim();
-    }
-
     // Parsing and evaluation functions:
 
     /**
@@ -359,7 +358,7 @@ public class AIMLProcessor {
      * @param ps   current parse state.
      * @return the unevaluated XML string
      */
-    private static String unevaluatedXML(String resultIn, Node node, ParseState ps) {
+    public static String unevaluatedXML(String resultIn, Node node, ParseState ps) {
         String nodeName = node.getNodeName();
         if (log.isTraceEnabled()) {
             log.trace("AIMLProcessor.unevaluatedXML(resultIn: {}, node: {}, nodeName: {}, ps: {}", resultIn, node, nodeName, ps);
@@ -387,755 +386,6 @@ public class AIMLProcessor {
     }
 
     /**
-     * in AIML 2.0, an attribute value can be specified by either an XML attribute value
-     * or a subtag of the same name.  This function tries to read the value from the XML attribute first,
-     * then tries to look for the subtag.
-     *
-     * @param node          current parse node.
-     * @param ps            current parse state.
-     * @param attributeName the name of the attribute.
-     * @return the attribute value.
-     */
-    // value can be specified by either attribute or tag
-    private String getAttributeOrTagValue(Node node, ParseState ps, String attributeName) {
-        if (log.isTraceEnabled()) {
-            log.trace("AIMLProcessor.getAttributeOrTagValue (node: {}, attributeName: {})", node, attributeName);
-        }
-        String result;
-        Node m = node.getAttributes().getNamedItem(attributeName);
-        if (m == null) {
-            NodeList childList = node.getChildNodes();
-            result = null;         // no attribute or tag named attributeName
-            for (int i = 0; i < childList.getLength(); i++) {
-                Node child = childList.item(i);
-                if (log.isTraceEnabled()) {
-                    log.trace("getAttributeOrTagValue child = {}", child.getNodeName());
-                }
-                if (child.getNodeName().equals(attributeName)) {
-                    result = evalTagContent(child, ps, null);
-                    if (log.isTraceEnabled()) {
-                        log.trace("getAttributeOrTagValue result from child = {}", result);
-                    }
-                }
-            }
-        } else {
-            result = m.getNodeValue();
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("in AIMLProcessor.getAttributeOrTagValue (), returning: {}", result);
-        }
-        return result;
-    }
-
-    /**
-     * return the value of a bot property.
-     * implements {{{@code <bot name="property"/>}}}
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the bot property or a string indicating the property was not found.
-     */
-    private String bot(Node node, ParseState ps) {
-        String result = Constants.default_property;
-        String propertyName = getAttributeOrTagValue(node, ps, "name");
-        if (propertyName != null) {
-            result = ps.getChatSession().getBot().getProperties().get(propertyName).trim();
-        }
-        return result;
-    }
-
-    /**
-     * implements formatted date tag <date jformat="format"/> and <date format="format"/>
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the formatted date
-     */
-    private String date(Node node, ParseState ps) {
-        String jformat = getAttributeOrTagValue(node, ps, "jformat");      // AIML 2.0
-        String locale = getAttributeOrTagValue(node, ps, "locale");
-        String timezone = getAttributeOrTagValue(node, ps, "timezone");
-        return CalendarUtils.date(jformat, locale, timezone);
-    }
-
-    /**
-     * <interval><style>years</style></style><jformat>MMMMMMMMM dd, yyyy</jformat><from>August 2, 1960</from><to><date><jformat>MMMMMMMMM dd, yyyy</jformat></date></to></interval>
-     */
-
-    private String interval(Node node, ParseState ps) {
-        String style = getAttributeOrTagValue(node, ps, "style");      // AIML 2.0
-        String jformat = getAttributeOrTagValue(node, ps, "jformat");      // AIML 2.0
-        String from = getAttributeOrTagValue(node, ps, "from");
-        String to = getAttributeOrTagValue(node, ps, "to");
-        if (style == null) {
-            style = "years";
-        }
-        if (jformat == null) {
-            jformat = "MMMMMMMMM dd, yyyy";
-        }
-        if (from == null) {
-            from = "January 1, 1970";
-        }
-        if (to == null) {
-            to = CalendarUtils.date(jformat, null, null);
-        }
-        String result = "unknown";
-        if ("years".equals(style)) {
-            result = "" + IntervalUtils.getYearsBetween(from, to, jformat);
-        }
-        if ("months".equals(style)) {
-            result = "" + IntervalUtils.getMonthsBetween(from, to, jformat);
-        }
-        if ("days".equals(style)) {
-            result = "" + IntervalUtils.getDaysBetween(from, to, jformat);
-        }
-        if ("hours".equals(style)) {
-            result = "" + IntervalUtils.getHoursBetween(from, to, jformat);
-        }
-        return result;
-    }
-
-    /**
-     * get the value of an index attribute and return it as an integer.
-     * if it is not recognized as an integer, return 0
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the the integer intex value
-     */
-    private int getIndexValue(Node node, ParseState ps) {
-        String value = getAttributeOrTagValue(node, ps, "index");
-        if (value != null) {
-            try {
-                return Integer.parseInt(value) - 1;
-            } catch (Exception e) {
-                log.error("Error: ", e);
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * implements {@code <star index="N"/>}
-     * returns the value of input words matching the Nth wildcard (or AIML Set).
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the word sequence matching a wildcard
-     */
-    private String inputStar(Node node, ParseState ps) {
-        int index = getIndexValue(node, ps);
-        if (ps.getStarBindings().getInputStars().star(index) == null) {
-            return "";
-        }
-        return ps.getStarBindings().getInputStars().star(index).trim();
-    }
-
-    /**
-     * implements {@code <thatstar index="N"/>}
-     * returns the value of input words matching the Nth wildcard (or AIML Set) in <that></that>.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the word sequence matching a wildcard
-     */
-    private String thatStar(Node node, ParseState ps) {
-        int index = getIndexValue(node, ps);
-        if (ps.getStarBindings().getThatStars().star(index) == null) {
-            return "";
-        }
-        return ps.getStarBindings().getThatStars().star(index).trim();
-    }
-
-    /**
-     * implements <topicstar/> and <topicstar index="N"/>
-     * returns the value of input words matching the Nth wildcard (or AIML Set) in a topic pattern.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the word sequence matching a wildcard
-     */
-    private String topicStar(Node node, ParseState ps) {
-        int index = getIndexValue(node, ps);
-        if (ps.getStarBindings().getTopicStars().star(index) == null) {
-            return "";
-        }
-        return ps.getStarBindings().getTopicStars().star(index).trim();
-    }
-
-    /**
-     * return the client ID.
-     * implements {@code <id/>}
-     *
-     * @param ps AIML parse state
-     * @return client ID
-     */
-
-    private static String id(ParseState ps) {
-        return ps.getChatSession().getCustomerId();
-    }
-
-    /**
-     * return the size of the robot brain (number of AIML categories loaded).
-     * implements {@code <size/>}
-     *
-     * @param ps AIML parse state
-     * @return bot brain size
-     */
-    private static String size(ParseState ps) {
-        int size = ps.getChatSession().getBot().getBrain().getCategories().size();
-        return String.valueOf(size);
-    }
-
-    /**
-     * return the size of the robot vocabulary (number of words the bot can recognize).
-     * implements {@code <vocabulary/>}
-     *
-     * @param ps AIML parse state
-     * @return bot vocabulary size
-     */
-    private static String vocabulary(ParseState ps) {
-        int size = ps.getChatSession().getBot().getBrain().getVocabulary().size();
-        return String.valueOf(size);
-    }
-
-    /**
-     * return a string indicating the name and version of the AIML program.
-     * implements {@code <program/>}
-     *
-     * @return AIML program name and version.
-     */
-    private String program() {
-        return bot.getConfiguration().getProgramName();
-    }
-
-    /**
-     * implements the (template-side) {@code <that index="M,N"/>}    tag.
-     * returns a normalized sentence.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the nth last sentence of the bot's mth last reply.
-     */
-    private String that(Node node, ParseState ps) {
-        int index = 0;
-        int jndex = 0;
-        String value = getAttributeOrTagValue(node, ps, "index");
-        if (value != null) {
-            try {
-                String[] spair = value.split(",");
-                index = Integer.parseInt(spair[0]) - 1;
-                jndex = Integer.parseInt(spair[1]) - 1;
-                log.debug("That index={},{}", index, jndex);
-            } catch (Exception e) {
-                log.error("Error: ", e);
-            }
-        }
-        String that = Constants.unknown_history_item;
-        History hist = ps.getChatSession().getThatHistory().get(index);
-        if (hist != null) {
-            that = (String) hist.get(jndex);
-        }
-        return that.trim();
-    }
-
-    /**
-     * implements {@code <input index="N"/>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the nth last sentence input to the bot
-     */
-    private String input(Node node, ParseState ps) {
-        int index = getIndexValue(node, ps);
-        return ps.getChatSession().getInputHistory().getString(index);
-    }
-
-    /**
-     * implements {@code <request index="N"/>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the nth last multi-sentence request to the bot.
-     */
-    private String request(Node node, ParseState ps) {             // AIML 2.0
-        int index = getIndexValue(node, ps);
-        return ps.getChatSession().getRequestHistory().getString(index).trim();
-    }
-
-    /**
-     * implements {@code <response index="N"/>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the bot's Nth last multi-sentence response.
-     */
-    private String response(Node node, ParseState ps) {            // AIML 2.0
-        int index = getIndexValue(node, ps);
-        return ps.getChatSession().getResponseHistory().getString(index).trim();
-    }
-
-    /**
-     * implements {@code <system>} tag.
-     * Evaluate the contents, and try to execute the result as
-     * a command in the underlying OS shell.
-     * Read back and return the result of this command.
-     * <p>
-     * The timeout parameter allows the botmaster to set a timeout
-     * in ms, so that the <system></system>   command returns eventually.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return the result of executing the system command or a string indicating the command failed.
-     */
-    private String system(Node node, ParseState ps) {
-        if (!bot.getConfiguration().isEnableSystemTag()) {
-            return "";
-        }
-        Set<String> attributeNames = Utilities.stringSet("timeout");
-        String evaluatedContents = evalTagContent(node, ps, attributeNames);
-        return IOUtils.system(evaluatedContents, bot.getConfiguration().getLanguage().getSystemFailed());
-    }
-
-    /**
-     * implements {@code <think>} tag
-     * <p>
-     * Evaluate the tag contents but return a blank.
-     * "Think but don't speak."
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return a blank empty string
-     */
-    private String think(Node node, ParseState ps) {
-        evalTagContent(node, ps, null);
-        return "";
-    }
-
-    /**
-     * Transform a string of words (separtaed by spaces) into
-     * a string of individual characters (separated by spaces).
-     * Explode "ABC DEF" = "A B C D E F".
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return exploded string
-     */
-    private String explode(Node node, ParseState ps) {              // AIML 2.0
-        String result = evalTagContent(node, ps, null);
-        return explode(result);
-    }
-
-    /**
-     * apply the AIML normalization pre-processor to the evaluated tag contenst.
-     * implements {@code <normalize>} tag.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return normalized string
-     */
-    private String normalize(Node node, ParseState ps) {            // AIML 2.0
-        String result = evalTagContent(node, ps, null);
-        return ps.getChatSession().getBot().getPreProcessor().normalize(result);
-    }
-
-    /**
-     * apply the AIML denormalization pre-processor to the evaluated tag contenst.
-     * implements {@code <normalize>} tag.
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return denormalized string
-     */
-    private String denormalize(Node node, ParseState ps) {            // AIML 2.0
-        String result = evalTagContent(node, ps, null);
-        return ps.getChatSession().getBot().getPreProcessor().denormalize(result);
-    }
-
-    /**
-     * evaluate tag contents and return result in upper case
-     * implements {@code <uppercase>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return uppercase string
-     */
-    private String uppercase(Node node, ParseState ps) {
-        String result = evalTagContent(node, ps, null);
-        return result.toUpperCase();
-    }
-
-    /**
-     * evaluate tag contents and return result in lower case
-     * implements {@code <lowercase>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return lowercase string
-     */
-    private String lowercase(Node node, ParseState ps) {
-        String result = evalTagContent(node, ps, null);
-        return result.toLowerCase();
-    }
-
-    /**
-     * evaluate tag contents and capitalize each word.
-     * implements {@code <formal>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return capitalized string
-     */
-    private String formal(Node node, ParseState ps) {
-        String result = evalTagContent(node, ps, null);
-        return capitalizeString(result);
-    }
-
-    /**
-     * evaluate tag contents and capitalize the first word.
-     * implements {@code <sentence>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return string with first word capitalized
-     */
-    private String sentence(Node node, ParseState ps) {
-        String result = evalTagContent(node, ps, null);
-        if (result.length() > 1) {
-            return result.substring(0, 1).toUpperCase() + result.substring(1, result.length());
-        }
-        return "";
-    }
-
-    /**
-     * evaluate tag contents and swap 1st and 2nd person pronouns
-     * implements {@code <person>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return sentence with pronouns swapped
-     */
-    private String person(Node node, ParseState ps) {
-        String result;
-        if (node.hasChildNodes()) {
-            result = evalTagContent(node, ps, null);
-        } else {
-            result = ps.getStarBindings().getInputStars().star(0);   // for <person/>
-        }
-        result = " " + result + " ";
-        result = ps.getChatSession().getBot().getPreProcessor().person(result);
-        return result.trim();
-    }
-
-    /**
-     * evaluate tag contents and swap 1st and 3rd person pronouns
-     * implements {@code <person2>} tag
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return sentence with pronouns swapped
-     */
-    private String person2(Node node, ParseState ps) {
-        String result;
-        if (node.hasChildNodes()) {
-            result = evalTagContent(node, ps, null);
-        } else {
-            result = ps.getStarBindings().getInputStars().star(0);   // for <person2/>
-        }
-        result = " " + result + " ";
-        result = ps.getChatSession().getBot().getPreProcessor().person2(result);
-        return result.trim();
-    }
-
-    /**
-     * implements {@code <gender>} tag
-     * swaps gender pronouns
-     *
-     * @param node current XML parse node
-     * @param ps   AIML parse state
-     * @return sentence with gender ronouns swapped
-     */
-    private String gender(Node node, ParseState ps) {
-        String result = evalTagContent(node, ps, null);
-        result = " " + result + " ";
-        result = ps.getChatSession().getBot().getPreProcessor().gender(result);
-        return result.trim();
-    }
-
-    private String unevaluatedAIML(Node node, ParseState ps) {
-        String result = learnEvalTagContent(node, ps);
-        return unevaluatedXML(result, node, ps);
-    }
-
-    private String recursLearn(Node node, ParseState ps) {
-        String nodeName = node.getNodeName();
-        if ("#text".equals(nodeName)) {
-            return node.getNodeValue();
-        } else if ("eval".equals(nodeName)) {
-            return evalTagContent(node, ps, null);                // AIML 2.0
-        }
-        return unevaluatedAIML(node, ps);
-    }
-
-    private String learnEvalTagContent(Node node, ParseState ps) {
-        NodeList childList = node.getChildNodes();
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < childList.getLength(); i++) {
-            Node child = childList.item(i);
-            result.append(recursLearn(child, ps));
-        }
-        return result.toString();
-    }
-
-    private String learn(Node node, ParseState ps) {                 // learn, learnf AIML 2.0
-        NodeList childList = node.getChildNodes();
-        String pattern = "";
-        String that = "*";
-        String template = "";
-        for (int i = 0; i < childList.getLength(); i++) {
-            if (childList.item(i).getNodeName().equals("category")) {
-                NodeList grandChildList = childList.item(i).getChildNodes();
-                for (int j = 0; j < grandChildList.getLength(); j++) {
-                    if (grandChildList.item(j).getNodeName().equals("pattern")) {
-                        pattern = recursLearn(grandChildList.item(j), ps);
-                    } else if (grandChildList.item(j).getNodeName().equals("that")) {
-                        that = recursLearn(grandChildList.item(j), ps);
-                    } else if (grandChildList.item(j).getNodeName().equals("template")) {
-                        template = recursLearn(grandChildList.item(j), ps);
-                    }
-                }
-                pattern = pattern.substring("<pattern>".length(), pattern.length() - "</pattern>".length());
-                if (log.isTraceEnabled()) {
-                    log.trace("Learn Pattern = {}", pattern);
-                }
-                if (template.length() >= "<template></template>".length())
-                    template = template.substring("<template>".length(), template.length() - "</template>".length());
-                if (that.length() >= "<that></that>".length())
-                    that = that.substring("<that>".length(), that.length() - "</that>".length());
-                pattern = pattern.toUpperCase();
-                pattern = pattern.replaceAll("\n", " ");
-                pattern = pattern.replaceAll("[ ]+", " ");
-                that = that.toUpperCase();
-                that = that.replaceAll("\n", " ");
-                that = that.replaceAll("[ ]+", " ");
-                if (log.isTraceEnabled()) {
-                    log.trace("Learn Pattern = {}", pattern);
-                    log.trace("Learn That = {}", that);
-                    log.trace("Learn Template = {}", template);
-                }
-                Category c;
-                if (node.getNodeName().equals("learn")) {
-                    c = new Category(bot, 0, pattern, that, "*", template, Constants.nullAimlFile);
-                    ps.getChatSession().getBot().getLearnGraph().addCategory(c);
-                } else {// learnf
-                    c = new Category(bot, 0, pattern, that, "*", template, Constants.learnfAimlFile);
-                    ps.getChatSession().getBot().getLearnfGraph().addCategory(c);
-                }
-                ps.getChatSession().getBot().getBrain().addCategory(c);
-            }
-        }
-        return "";
-    }
-
-    /**
-     * check to see if a result contains a {@code <loop/>} tag.
-     *
-     * @param node current XML parse node
-     * @return true or false
-     */
-    public static boolean evalTagForLoop(Node node) {
-        NodeList childList = node.getChildNodes();
-        for (int i = 0; i < childList.getLength(); i++) {
-            if (childList.item(i).getNodeName().equals("loop")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String deleteTriple(Node node, ParseState ps) {
-        String subject = getAttributeOrTagValue(node, ps, "subj");
-        String predicate = getAttributeOrTagValue(node, ps, "pred");
-        String object = getAttributeOrTagValue(node, ps, "obj");
-        return ps.getChatSession().getTripleStore().deleteTriple(subject, predicate, object);
-    }
-
-    private String addTriple(Node node, ParseState ps) {
-        String subject = getAttributeOrTagValue(node, ps, "subj");
-        String predicate = getAttributeOrTagValue(node, ps, "pred");
-        String object = getAttributeOrTagValue(node, ps, "obj");
-        return ps.getChatSession().getTripleStore().addTriple(subject, predicate, object);
-    }
-
-    private String uniq(Node node, ParseState ps) {
-        HashSet<String> vars = new HashSet<>();
-        HashSet<String> visibleVars = new HashSet<>();
-        String subj = "?subject";
-        String pred = "?predicate";
-        String obj = "?object";
-        NodeList childList = node.getChildNodes();
-        for (int j = 0; j < childList.getLength(); j++) {
-            Node childNode = childList.item(j);
-            String contents = evalTagContent(childNode, ps, null);
-            if (childNode.getNodeName().equals("subj")) {
-                subj = contents;
-            } else if (childNode.getNodeName().equals("pred")) {
-                pred = contents;
-            } else if (childNode.getNodeName().equals("obj")) {
-                obj = contents;
-            }
-            if (contents.startsWith("?")) {
-                visibleVars.add(contents);
-                vars.add(contents);
-            }
-        }
-        Tuple partial = ps.getChatSession().getTripleStore().storeTuple(new Tuple(vars, visibleVars));
-        Clause clause = new Clause(subj, pred, obj);
-        Set<Tuple> tuples = ps.getChatSession().getTripleStore().selectFromSingleClause(partial, clause, true);
-        String tupleList = tuples.stream().map(Tuple::getName).collect(Collectors.joining(" "));
-        if (tupleList.length() == 0) {
-            tupleList = "NIL";
-        }
-        String var = "";
-        for (String x : visibleVars) {
-            var = x;
-        }
-        String firstTuple = firstWord(tupleList);
-        return ps.getChatSession().getTripleStore().tupleGet(firstTuple, var);
-    }
-
-    public String select(Node node, ParseState ps) {
-        ArrayList<Clause> clauses = new ArrayList<>();
-        NodeList childList = node.getChildNodes();
-        //String[] splitTuple;
-        HashSet<String> vars = new HashSet<>();
-        HashSet<String> visibleVars = new HashSet<>();
-        for (int i = 0; i < childList.getLength(); i++) {
-            Node childNode = childList.item(i);
-            if (childNode.getNodeName().equals("vars")) {
-                String contents = evalTagContent(childNode, ps, null);
-                String[] splitVars = contents.split(" ");
-                for (String var : splitVars) {
-                    var = var.trim();
-                    if (var.length() > 0) {
-                        visibleVars.add(var);
-                    }
-                }
-            } else if (childNode.getNodeName().equals("q") || childNode.getNodeName().equals("notq")) {
-                Boolean affirm = !childNode.getNodeName().equals("notq");
-                NodeList grandChildList = childNode.getChildNodes();
-                String subj = null;
-                String pred = null;
-                String obj = null;
-                for (int j = 0; j < grandChildList.getLength(); j++) {
-                    Node grandChildNode = grandChildList.item(j);
-                    String contents = evalTagContent(grandChildNode, ps, null);
-                    if (grandChildNode.getNodeName().equals("subj")) {
-                        subj = contents;
-                    } else if (grandChildNode.getNodeName().equals("pred")) {
-                        pred = contents;
-                    } else if (grandChildNode.getNodeName().equals("obj")) {
-                        obj = contents;
-                    }
-                    if (contents.startsWith("?")) {
-                        vars.add(contents);
-                    }
-                }
-                clauses.add(new Clause(subj, pred, obj, affirm));
-            }
-        }
-        Set<Tuple> tuples = ps.getChatSession().getTripleStore().select(vars, visibleVars, clauses);
-        String result = tuples.stream().map(Tuple::getName).collect(Collectors.joining(" "));
-        if (result.length() == 0) {
-            result = "NIL";
-        }
-        return result;
-    }
-
-    public String subject(Node node, ParseState ps) {
-        String id = evalTagContent(node, ps, null);
-        TripleStore ts = ps.getChatSession().getTripleStore();
-        String subject = "unknown";
-        if (ts.getIdTriple().containsKey(id)) {
-            subject = ts.getIdTriple().get(id).getSubject();
-        }
-        return subject;
-    }
-
-    public String predicate(Node node, ParseState ps) {
-        String id = evalTagContent(node, ps, null);
-        TripleStore ts = ps.getChatSession().getTripleStore();
-        if (ts.getIdTriple().containsKey(id)) {
-            return ts.getIdTriple().get(id).getPredicate();
-        }
-        return "unknown";
-    }
-
-    public String object(Node node, ParseState ps) {
-        String id = evalTagContent(node, ps, null);
-        TripleStore ts = ps.getChatSession().getTripleStore();
-        if (ts.getIdTriple().containsKey(id)) {
-            return ts.getIdTriple().get(id).getObject();
-        }
-        return "unknown";
-    }
-
-    public String javascript(Node node, ParseState ps) {
-        String result = Constants.bad_javascript;
-        String script = evalTagContent(node, ps, null);
-        try {
-            result = IOUtils.evalScript("JavaScript", script);
-        } catch (Exception e) {
-            log.error("JavaScript error:", e);
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("in AIMLProcessor.javascript, returning result: {}", result);
-        }
-        return result;
-    }
-
-    private static String firstWord(String sentence) {
-        String content = (sentence == null ? "" : sentence);
-        content = content.trim();
-        if (content.contains(" ")) {
-            return content.substring(0, content.indexOf(" "));
-        } else if (content.length() > 0) {
-            return content;
-        }
-        return Constants.default_list_item;
-    }
-
-    private static String restWords(String sentence) {
-        String content = (sentence == null ? "" : sentence);
-        content = content.trim();
-        if (content.contains(" ")) {
-            return content.substring(content.indexOf(" ") + 1, content.length());
-        }
-        return Constants.default_list_item;
-    }
-
-    public String first(Node node, ParseState ps) {
-        String content = evalTagContent(node, ps, null);
-        return firstWord(content);
-    }
-
-    public String rest(Node node, ParseState ps) {
-        String content = evalTagContent(node, ps, null);
-        content = ps.getChatSession().getBot().getPreProcessor().normalize(content);
-        return restWords(content);
-    }
-
-    private static String resetlearnf(ParseState ps) {
-        ps.getChatSession().getBot().deleteLearnfCategories();
-        return "Deleted Learnf Categories";
-    }
-
-    private static String resetlearn(ParseState ps) {
-        ps.getChatSession().getBot().deleteLearnCategories();
-        return "Deleted Learn Categories";
-    }
-
-    /**
      * Recursively descend the XML DOM tree, evaluating AIML and building a response.
      *
      * @param node current XML parse node
@@ -1147,90 +397,11 @@ public class AIMLProcessor {
         }
         try {
             String nodeName = node.getNodeName();
-
             AIMLNodeProcessor processor = nodeProcessors.get(nodeName);
             if (processor != null && processor.getTags().contains(nodeName)) {
                 return processor.eval(node, ps);
             }
-
-            switch (nodeName) {
-
-                case "bot":
-                    return bot(node, ps);
-                case "id":
-                    return id(ps);
-                case "size":
-                    return size(ps);
-                case "vocabulary":
-                    return vocabulary(ps);
-                case "program":
-                    return program();
-                case "date":
-                    return date(node, ps);
-                case "interval":
-                    return interval(node, ps);
-                case "think":
-                    return think(node, ps);
-                case "system":
-                    return system(node, ps);
-                case "explode":
-                    return explode(node, ps);
-                case "normalize":
-                    return normalize(node, ps);
-                case "denormalize":
-                    return denormalize(node, ps);
-                case "uppercase":
-                    return uppercase(node, ps);
-                case "lowercase":
-                    return lowercase(node, ps);
-                case "formal":
-                    return formal(node, ps);
-                case "sentence":
-                    return sentence(node, ps);
-                case "person":
-                    return person(node, ps);
-                case "person2":
-                    return person2(node, ps);
-                case "gender":
-                    return gender(node, ps);
-                case "star":
-                    return inputStar(node, ps);
-                case "thatstar":
-                    return thatStar(node, ps);
-                case "topicstar":
-                    return topicStar(node, ps);
-                case "that":
-                    return that(node, ps);
-                case "input":
-                    return input(node, ps);
-                case "request":
-                    return request(node, ps);
-                case "response":
-                    return response(node, ps);
-                case "learn":
-                case "learnf":
-                    return learn(node, ps);
-                case "addtriple":
-                    return addTriple(node, ps);
-                case "deletetriple":
-                    return deleteTriple(node, ps);
-                case "javascript":
-                    return javascript(node, ps);
-                case "select":
-                    return select(node, ps);
-                case "uniq":
-                    return uniq(node, ps);
-                case "first":
-                    return first(node, ps);
-                case "rest":
-                    return rest(node, ps);
-                case "resetlearnf":
-                    return resetlearnf(ps);
-                case "resetlearn":
-                    return resetlearn(ps);
-                default:
-                    return genericXML(node, ps);
-            }
+            return genericXML(node, ps);
         } catch (Exception e) {
             log.error("Error: ", e);
             return "";

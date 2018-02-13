@@ -1,9 +1,9 @@
 package org.goldrenard.jb.process;
 
-import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.model.AIMLMap;
 import org.goldrenard.jb.model.ParseState;
+import org.goldrenard.jb.process.base.AIMLProcessor;
 import org.goldrenard.jb.process.base.BaseNodeProcessor;
 import org.goldrenard.jb.utils.Utilities;
 import org.slf4j.Logger;
