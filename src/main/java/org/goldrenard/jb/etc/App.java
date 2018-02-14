@@ -42,6 +42,9 @@ public class App {
                 if (option.equals("bot")) {
                     builder.name(value);
                 }
+                if (option.equals("root")) {
+                    builder.path(value);
+                }
                 if (option.equals("action")) {
                     builder.action(value);
                 }

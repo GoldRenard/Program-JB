@@ -42,7 +42,7 @@ public class BotProcessor extends BaseTagProcessor {
                     result = String.valueOf(attribute);
                 }
             }
-            if (result == null) {
+            if (result == null || Constants.default_property.equals(result)) {
                 result = ps.getChatSession().getBot().getProperties().get(propertyName).trim();
             }
         }

@@ -5,7 +5,7 @@
     <groupId>org.goldrenard</groupId>
     <artifactId>jb</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
 
     <name>Program JB</name>
     <description>
